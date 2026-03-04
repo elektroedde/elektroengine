@@ -72,11 +72,12 @@ elektroengine/
 
 ## Roadmap
 
+- [ ] Upgrade Metal 3 -> Metal 4
 - [ ] Fluid simulation (Navier-Stokes on GPU)
 - [ ] Electrostatic field solver
 - [ ] Export to CSV / image / video
-- [ ] Scriptable function input with variable binding
 - [ ] Complex number / phase plotting in 2D
+- [ ] Particle simulation
 
 ---
 
