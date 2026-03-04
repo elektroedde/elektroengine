@@ -12,7 +12,7 @@
   &nbsp;&nbsp;&nbsp;&nbsp;
   &nbsp;&nbsp;&nbsp;&nbsp;
   &nbsp;&nbsp;&nbsp;&nbsp;
-  <img src="docs/images/C++.png" width="100" alt="C++" />
+  <img src="docs/images/C++.png" width="80" alt="C++" />
 </div>
 
 ---
