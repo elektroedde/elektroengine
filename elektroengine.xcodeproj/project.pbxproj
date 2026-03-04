@@ -21,6 +21,11 @@
 			path = elektroengine;
 			sourceTree = "<group>";
 		};
+		5244A3D22F58E2EE000A91F4 /* docs */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = docs;
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -38,6 +43,7 @@
 		522860C02F4DE45E00C94D21 = {
 			isa = PBXGroup;
 			children = (
+				5244A3D22F58E2EE000A91F4 /* docs */,
 				522860CB2F4DE45E00C94D21 /* elektroengine */,
 				523777612F53991B00C205ED /* Frameworks */,
 				522860CA2F4DE45E00C94D21 /* Products */,
@@ -77,6 +83,7 @@
 			);
 			fileSystemSynchronizedGroups = (
 				522860CB2F4DE45E00C94D21 /* elektroengine */,
+				5244A3D22F58E2EE000A91F4 /* docs */,
 			);
 			name = elektroengine;
 			packageProductDependencies = (
