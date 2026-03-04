@@ -11,7 +11,7 @@
   <img src="docs/images/Swift.png" width="100" alt="Swift" />
   <img src="docs/images/Metal3.png" width="100" alt="Metal3" />
   <img src="docs/images/C++.png" width="90" alt="C++" />
-  <img src="docs/images/Gmsh.png" width="90" alt="Gmsh" />
+  <img src="docs/images/Gmsh.png" width="120" alt="Gmsh" />
 </div>
 
 
