@@ -2,10 +2,6 @@
 
 > A high-performance (???) graphics rendering engine, physics solver, and scientific visualizer — built in Swift, Metal, and C++.
 
-![Swift](https://img.shields.io/badge/Swift-5.9+-F05138?style=for-the-badge&logo=swift&logoColor=white)
-![Metal](https://img.shields.io/badge/Metal_3-GPU_Accelerated-A8A9AD?style=for-the-badge&logo=apple&logoColor=black&labelColor=1C1C1E)
-![Platform](https://img.shields.io/badge/platform-macOS_%7C_iOS-000000?style=for-the-badge&logo=apple&logoColor=white)
-![C++](https://img.shields.io/badge/C++-Bridge-00599C?style=for-the-badge&logo=cplusplus&logoColor=white)
 
 <div align="center">
   <img src="docs/images/Metal3.png" width="100" alt="Metal3" />
