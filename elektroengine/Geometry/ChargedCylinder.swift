@@ -69,7 +69,6 @@ struct ChargedCylinder: Transformable {
         params.minFem = femValues.min() ?? 0
         params.maxFem = femValues.max() ?? 1
         params.colormapChoice = options.colormap.rawValue
-        print("colormap:", options.colormap.rawValue)
         var uniforms = vertex
         renderEncoder.setTriangleFillMode(.fill)
         uniforms.modelMatrix = transform.modelMatrix

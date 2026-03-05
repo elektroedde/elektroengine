@@ -35,10 +35,11 @@ fragment float4 fragment_graph(constant Params &params [[buffer(ParamsBuffer)]],
 
 fragment float4 fragment_surface(constant Params &params [[buffer(ParamsBuffer)]],
                               VertexOut in [[stage_in]]) {
-    
+    float t = clamp((in.worldY - params.minY) / (params.maxY - params.minY), 0.0, 1.0);
+
     float normalizedHeight = (in.worldY - params.minY) / (params.maxY - params.minY);
-    float3 color = turbo2(normalizedHeight);
-    
+    float3 color = jet(t);
+
     return float4(color, 1);
 }
 
@@ -62,7 +63,7 @@ fragment float4 fragment_fem(constant Params &params [[buffer(ParamsBuffer)]],
 
     switch(params.colormapChoice) {
         case 0:
-            color = googleTurbo(t);
+            color = jet(t);
             break;
         case 1:
             color = viridis(t);
@@ -80,11 +81,9 @@ fragment float4 fragment_fem(constant Params &params [[buffer(ParamsBuffer)]],
             color = magma(t);
             break;
         case 6:
-            color = jet(t);
-            break;
-        case 7:
             color = turbo(t);
             break;
+
         default:
             color = float3(1,1,1);
             break;

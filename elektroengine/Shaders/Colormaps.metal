@@ -1,30 +1,5 @@
-//
-//  Colormaps.metal
-//  elektroengine
-//
-//  Created by Edvin Berling on 2026-03-03.
-//
-
 #include <metal_stdlib>
 using namespace metal;
-
-constant float3 kGoogleTurbo[15] = {
-    float3(0.188, 0.071, 0.231),
-    float3(0.255, 0.271, 0.671),
-    float3(0.275, 0.459, 0.929),
-    float3(0.224, 0.635, 0.988),
-    float3(0.106, 0.812, 0.831),
-    float3(0.141, 0.925, 0.651),
-    float3(0.380, 0.988, 0.424),
-    float3(0.643, 0.988, 0.231),
-    float3(0.820, 0.910, 0.204),
-    float3(0.953, 0.776, 0.227),
-    float3(0.996, 0.608, 0.176),
-    float3(0.953, 0.388, 0.082),
-    float3(0.851, 0.220, 0.024),
-    float3(0.694, 0.098, 0.004),
-    float3(0.478, 0.016, 0.008)
-};
 
 constant float3 kViridis[16] = {
     float3(0.267004, 0.004874, 0.329415),
@@ -158,14 +133,6 @@ constant float3 kPlasma[16] = {
     float3(0.977995, 0.861432, 0.142808),
     float3(0.940015, 0.975158, 0.131326)
 };
-
-
-float3 googleTurbo(float t) {
-    float scaled = t * 14.0;
-    int idx = clamp(int(scaled), 0, 13);
-    float localT = scaled - float(idx);
-    return mix(kGoogleTurbo[idx], kGoogleTurbo[idx + 1], localT);
-}
 
 float3 viridis(float t) {
     float scaled = t * 15.0;

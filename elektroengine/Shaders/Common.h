@@ -1,4 +1,3 @@
-
 #ifndef Common_h
 #define Common_h
 #import <simd/simd.h>
@@ -29,8 +28,5 @@ typedef enum {
     ParamsBuffer = 12,
     FEMBuffer = 13
 } BufferIndices;
-
-
-
 
 #endif /* Common_h */

@@ -5,10 +5,9 @@ class Solver {
         let N = femObject.N
         let M = femObject.M
 
-        var K = [[Float]](repeating: [Float](repeating: 0, count: N), count: N)
+        var K = [Float](repeating: 0, count: N * N)
         var b = [Float](repeating: 0, count: N)
 
-        // Assemble global stiffness matrix
         for element in 0..<M {
             let n0 = femObject.nodes[element * 3 + 0]
             let n1 = femObject.nodes[element * 3 + 1]
@@ -20,51 +19,37 @@ class Solver {
 
             let area = 0.5 * (x[0]*(y[1] - y[2]) + x[1]*(y[2] - y[0]) + x[2]*(y[0] - y[1]))
 
-            // rename these?
             let beta  = [y[1] - y[2], y[2] - y[0], y[0] - y[1]]
             let alpha = [x[2] - x[1], x[0] - x[2], x[1] - x[0]]
-
 
             var f: Float = 0
             if(femObject.chargeElements.contains(femObject.allElements[element])) {
                 f = 1000000
             }
 
-            var K_e: [[Float]] = [[Float]](repeating: [Float](repeating: 0, count: 3), count: 3)
-            var b_e: [Float] = [Float](repeating: 0, count: 3)
-
             for m in 0..<3 {
-                b_e[m] = f*area/3
-                b[nodes[m]] += b_e[m]
+                b[nodes[m]] += f * area / 3
                 for n in 0..<3 {
-                    var dirac: Float = 0
-                    if(m == n) {
-                        dirac = 1
-                    }
-                    K_e[m][n] = (alpha[m]*alpha[n] + beta[m]*beta[n]) / (4*area) + 0*dirac
-
-                    K[nodes[m]][nodes[n]] += K_e[m][n]
+                    let K_e = (alpha[m]*alpha[n] + beta[m]*beta[n]) / (4*area)
+                    K[nodes[n] * N + nodes[m]] += K_e
                 }
             }
         }
 
-        // Apply Dirichlet boundary conditions
         for (i, k) in femObject.dirichletNodes.enumerated() {
             let val = Float(femObject.dirichletValues[i])
             for j in 0..<N {
                 if k == j {
-                    K[j][j] = 1
+                    K[j * N + j] = 1
                     b[j] = val
                 } else {
-
-                    b[j] -= K[j][k] * val
-                    K[k][j] = 0
-                    K[j][k] = 0
+                    b[j] -= K[k * N + j] * val
+                    K[j * N + k] = 0
+                    K[k * N + j] = 0
                 }
             }
         }
 
-        // Apply Robin boundary conditions
         for k in 0..<femObject.robinElements.count {
             let node1 = femObject.robinNodes[k*2]
             let node2 = femObject.robinNodes[k*2 + 1]
@@ -81,12 +66,12 @@ class Solver {
                 b[nodes[i]] += q * length / 2
                 for j in 0..<2 {
                     let dirac: Float = (i == j) ? 1 : 0
-                    K[nodes[i]][nodes[j]] += gamma * (1 + dirac) * length / 6
+                    K[nodes[j] * N + nodes[i]] += gamma * (1 + dirac) * length / 6
                 }
             }
         }
 
-        return solveLAPACK(K, b)!
+        return solveLAPACK(&K, b)!
     }
 
     static func linearSolver(_ A_in: [[Float]], _ b_in: [Float]) -> [Float] {
@@ -132,30 +117,26 @@ class Solver {
         return x
     }
 
-    static func solveLAPACK(_ A: [[Float]], _ b: [Float]) -> [Float]? {
+    static func solveLAPACK(_ A_flat: inout [Float], _ b: [Float]) -> [Float]? {
         let n = b.count
-        var A_flat = [Float](repeating: 0, count: n*n)
-        for i in 0..<n {
-            for j in 0..<n {
-                A_flat[j * n + i] = A[i][j]
+
+        var b_copy = b
+
+        var lda = Int32(n)
+        var ldb = Int32(n)
+        var ipiv = [__LAPACK_int](repeating: 0, count: n)
+        var info: Int32 = 0
+
+        withUnsafePointer(to: __LAPACK_int(n)) { n in
+            withUnsafePointer(to: __LAPACK_int(1)) { nrhs in
+                sgesv_(n, nrhs, &A_flat, &lda, &ipiv, &b_copy, &ldb, &info)
             }
         }
 
-        var b_copy = b
-        var n32 = Int32(n)
-        var nrhs: Int32 = 1
-        var lda = Int32(n)
-        var ldb = Int32(n)
-        var ipiv = [Int32](repeating: 0, count: n)
-        var info: Int32 = 0
-
-        sgesv_(&n32, &nrhs, &A_flat, &lda, &ipiv, &b_copy, &ldb, &info)
-
-        if info == 0 {
-            return b_copy
-        } else {
-            print("LAPACK sgesv failed with info = \(info)")
+        if info != 0 {
+            print("LAPACK sgesv_ error \(info) ")
             return nil
         }
+        return b_copy
     }
 }
