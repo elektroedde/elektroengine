@@ -17,7 +17,6 @@ struct Graph: Transformable {
     let linewidth: Float = 0.01
 
     var sign: Float = -1
-
     var xval: Float
     var yval: Float
 
