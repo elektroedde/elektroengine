@@ -4,6 +4,7 @@
 
 #ifndef __METAL_VERSION__
 #import "meshing.hpp"
+#import "Waveguide.hpp"
 #endif
 
 typedef struct {

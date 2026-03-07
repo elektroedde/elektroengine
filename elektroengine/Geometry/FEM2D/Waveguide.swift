@@ -20,8 +20,6 @@ struct Waveguide: Transformable {
     let gammaRightBoundary: (real: Float, imag: Float) = (0, k_0)
 
     init(device: MTLDevice) {
-
-
         pipelineState = PipelineStates.createFEMPSO()
         let mesh = createWaveguide()
 
@@ -43,7 +41,6 @@ struct Waveguide: Transformable {
         for (i, _) in mesh.dielectricElementTags.enumerated() {
             femObject.material[Int(i)] = 1 / epsilon_r
         }
-
 
         for v in mesh.leftBoundaryElementTags {
             femObject.robinElements.append(Int(v-1))

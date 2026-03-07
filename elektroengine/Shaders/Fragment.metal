@@ -5,19 +5,9 @@
 #include "Common.h"
 using namespace metal;
 #include "ShaderDefinitions.h"
-
-
+#include "Colormaps/Colormaps.h"
 
 float3 drawGrid2(float2);
-float3 turbo2(float);
-float3 googleTurbo(float);
-float3 viridis(float);
-float3 inferno(float);
-float3 plasma(float);
-float3 cividis(float);
-float3 magma(float);
-float3 jet(float);
-float3 turbo(float);
 
 fragment float4 fragment_background(constant Params &params [[buffer(ParamsBuffer)]],
                               VertexOut in [[stage_in]]) {

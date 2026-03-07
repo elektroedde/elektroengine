@@ -1,14 +1,12 @@
 import MetalKit
 
-class FEMScene: SceneX {
+class FEM2DScene: SceneX {
 
     lazy var background: Background = {
         Background(device: Renderer.device)
     }()
 
-    lazy var rectangle: Rectangle = {
-        Rectangle(device: Renderer.device)
-    }()
+ 
 
     lazy var gmsh_rectangle: GMSH_Rectangle = {
         GMSH_Rectangle(device: Renderer.device)
