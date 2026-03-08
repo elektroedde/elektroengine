@@ -51,7 +51,6 @@ extension Renderer {
     func mtkView(_ view: MTKView, drawableSizeWillChange size: CGSize) {
         params.width = UInt32(size.width)
         params.height = UInt32(size.height)
-        print("Resizing")
     }
     
     func draw(scene: SceneX, in view: MTKView) {

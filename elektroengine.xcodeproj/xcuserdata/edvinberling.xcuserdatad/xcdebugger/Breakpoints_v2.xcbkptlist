@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Bucket
+   uuid = "528C68CC-0228-46EE-A22F-B5EF9DC37020"
+   type = "1"
+   version = "2.0">
+   <Breakpoints>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "0947289B-9A9B-4F19-A309-3DCE3CBBE15D"
+            shouldBeEnabled = "No"
+            nameForDebugger = "params.width"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "Graphing2D/Shaders/Fragment.metal"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "38"
+            endingLineNumber = "38"
+            landmarkName = "fragment_vector"
+            landmarkType = "9">
+         </BreakpointContent>
+      </BreakpointProxy>
+   </Breakpoints>
+</Bucket>

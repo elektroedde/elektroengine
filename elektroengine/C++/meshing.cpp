@@ -3,14 +3,15 @@
 
 MeshData getMeshPoints() {
     gmsh::initialize();
+    gmsh::option::setNumber("General.Terminal", 0);
     gmsh::model::add("t1");
 
     double lc = 1;
-    gmsh::model::geo::addPoint(0, 0, 0, lc, 1);
-    gmsh::model::geo::addPoint(10, 0, 0, lc, 2);
-    gmsh::model::geo::addPoint(10, 10, 0, lc, 3);
+    gmsh::model::geo::addPoint(-5, -5, 0, lc, 1);
+    gmsh::model::geo::addPoint(5, -5, 0, lc, 2);
+    gmsh::model::geo::addPoint(5, 5, 0, lc, 3);
 
-    int p4 = gmsh::model::geo::addPoint(0, 10, 0, lc);
+    int p4 = gmsh::model::geo::addPoint(-5, 5, 0, lc);
 
     gmsh::model::geo::addLine(1, 2, 1);
     gmsh::model::geo::addLine(3, 2, 2);
@@ -91,8 +92,9 @@ CylinderMeshData createChargeCylinder() {
     float height = 10;
     float factor = 50;
     gmsh::initialize();
+    gmsh::option::setNumber("General.Terminal", 0);
 
-    int x = gmsh::model::occ::addRectangle(-width/2, -height/2, 0, width, height);
+    gmsh::model::occ::addRectangle(-width/2, -height/2, 0, width, height);
     gmsh::model::occ::addDisk(0, 0, 0, width/10, height/10);
 
     // We apply a boolean difference to create the "cube minus one eighth" shape:
@@ -170,3 +172,5 @@ CylinderMeshData createChargeCylinder() {
     gmsh::finalize();
     return data;
 }
+
+

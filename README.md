@@ -38,7 +38,7 @@
 Meshing is done by gmsh or manually programming vertices. The matrix assembly is done in Swift.
 
 TODO:
-- [ ] Complex number solutions
+- ✅ Complex number solutions [Added cgesv_ from LAPACK]
 
 ### Graphing 2D
 WIP

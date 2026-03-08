@@ -12,11 +12,19 @@ struct FEM_Model {
     var robinElements: [Int] = []
     var robinNodes: [Int] = []
 
-    var f: [Float]? = nil
+    var f: [Float] = []
     var q: [Float] = []
     var gamma: [Float] = []
 
+    // Complex Robin coefficients: interleaved [real, imag] pairs
+    var qComplex: [Float] = []
+    var gammaComplex: [Float] = []
+
     var chargeElements: [Int] = []
     var allElements: [Int] = []
+
+    var material: [Float] = []
+
+    var beta: Float = 0
 
 }

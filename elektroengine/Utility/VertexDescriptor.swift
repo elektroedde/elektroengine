@@ -8,7 +8,6 @@ extension MTLVertexDescriptor {
         vertexDescriptor.attributes[0].bufferIndex = 0
         vertexDescriptor.layouts[0].stride = MemoryLayout<Vertex>.stride
 
-
         return vertexDescriptor
     }
 
@@ -26,8 +25,6 @@ extension MTLVertexDescriptor {
 
         return vertexDescriptor
     }
-
-
 }
 
 extension BufferIndices {

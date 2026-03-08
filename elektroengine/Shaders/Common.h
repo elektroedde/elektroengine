@@ -1,10 +1,11 @@
-
 #ifndef Common_h
 #define Common_h
 #import <simd/simd.h>
 
 #ifndef __METAL_VERSION__
 #import "meshing.hpp"
+#import "Waveguide.hpp"
+#import "Eigenmode.hpp"
 #endif
 
 typedef struct {
@@ -15,6 +16,7 @@ typedef struct {
     float minFem;
     float maxFem;
     int colormapChoice;
+    bool showContours;
 } Params;
 
 typedef struct {
@@ -29,8 +31,5 @@ typedef enum {
     ParamsBuffer = 12,
     FEMBuffer = 13
 } BufferIndices;
-
-
-
 
 #endif /* Common_h */

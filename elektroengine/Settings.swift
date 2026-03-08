@@ -7,7 +7,6 @@ enum Settings {
     static var touchZoomSensitivity: Float { 5.0 }
 }
 
-
 import SwiftUI
 import Observation
 
@@ -16,22 +15,40 @@ enum EquationChoice {
 }
 
 enum ApplicationWindow {
-    case FEM, Graphing2D, Graphing3D
+    case FEM2D, FEM3D, Graphing2D, Graphing3D
 }
-enum Colormap: Int32 {
-    case googleTurbo = 0
+enum Colormap: Int32, CaseIterable {
+    case jet = 0
     case viridis = 1
     case inferno = 2
     case plasma = 3
     case cividis = 4
     case magma = 5
-    case jet = 6
-    case turbo = 7
+    case turbo = 6
+
+    var label: String {
+        switch self {
+        case .jet: "Jet"
+        case .viridis: "Viridis"
+        case .inferno: "Inferno"
+        case .plasma: "Plasma"
+        case .cividis: "Cividis"
+        case .magma: "Magma"
+        case .turbo: "Turbo"
+        }
+    }
+}
+
+enum FemChoice {
+    case rectangle, chargedCylinder, waveguide, eigenmode
 }
 
 @Observable
 class Options {
     var equationChoice = EquationChoice.sin
-    var applicationChoice = ApplicationWindow.FEM
-    var colormap = Colormap.googleTurbo
+    var femChoice = FemChoice.eigenmode
+    var applicationChoice = ApplicationWindow.FEM2D
+    var colormap = Colormap.jet
+    var drawWireframe: Bool = false
+    var showContours: Bool = false
 }

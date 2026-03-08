@@ -31,7 +31,8 @@ class ApplicationController: NSObject {
 
     private static func createScene(for app: ApplicationWindow) -> SceneX {
         switch app {
-        case .FEM: return FEMScene()
+        case .FEM2D: return FEM2DScene()
+        case .FEM3D: return FEM3DScene()
         case .Graphing2D: return Graphing2DScene()
         case .Graphing3D: return Graphing3DScene()
         }

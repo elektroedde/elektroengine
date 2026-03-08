@@ -18,6 +18,7 @@ struct ChargedCylinder: Transformable {
         // All vertices (GMSH node tags are 1-based)
         for val in mesh.allNodeTags {
             femObject.nodes.append(Int(val)-1)
+            femObject.f.append(0)
 
         }
         for val in mesh.allNodeCoords {
@@ -27,10 +28,12 @@ struct ChargedCylinder: Transformable {
 
         for v in mesh.allElementTags {
             femObject.allElements.append(Int(v-1))
+            femObject.material.append(1)
         }
 
-        for element in mesh.cylinderElementTags {
-            femObject.chargeElements.append(Int(element-1))
+        for (i, _) in mesh.cylinderElementTags.enumerated() {
+            femObject.f[i] = 100
+
         }
 
 
@@ -49,10 +52,11 @@ struct ChargedCylinder: Transformable {
             fatalError("Could not create index buffer")
         }
 
+
         let startTime = CFAbsoluteTimeGetCurrent()
-        femValues = Solver.solve(femObject: femObject)
+        femValues = Solver.solve(model: femObject, printDebug: true)
         let endTime = CFAbsoluteTimeGetCurrent()
-        print("The solver took \(String(format: "%.0f", (endTime - startTime)*1000))ms")
+        print("Total time for the solver: \(String(format: "%.0f", (endTime - startTime)*1000))ms\n")
 
         guard let femBuffer = device.makeBuffer(bytes: &femValues, length: MemoryLayout<Float>.stride * femValues.count, options: []) else {
             fatalError("Could not create FEM buffer")
@@ -69,7 +73,6 @@ struct ChargedCylinder: Transformable {
         params.minFem = femValues.min() ?? 0
         params.maxFem = femValues.max() ?? 1
         params.colormapChoice = options.colormap.rawValue
-        print("colormap:", options.colormap.rawValue)
         var uniforms = vertex
         renderEncoder.setTriangleFillMode(.fill)
         uniforms.modelMatrix = transform.modelMatrix

@@ -7,7 +7,7 @@ struct Point {
 }
 class InputController {
     static let shared = InputController()
-
+//Test 2
     var canMouseDown = false
     var leftMouseDown = false
     var rightClick: CGPoint = .zero
