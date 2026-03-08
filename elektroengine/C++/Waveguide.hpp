@@ -1,10 +1,3 @@
-//
-//  Waveguide.hpp
-//  elektroengine
-//
-//  Created by Edvin Berling on 2026-03-06.
-//
-
 #ifndef Waveguide_hpp
 #define Waveguide_hpp
 

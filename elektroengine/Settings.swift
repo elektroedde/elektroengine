@@ -40,13 +40,13 @@ enum Colormap: Int32, CaseIterable {
 }
 
 enum FemChoice {
-    case rectangle, chargedCylinder, waveguide
+    case rectangle, chargedCylinder, waveguide, eigenmode
 }
 
 @Observable
 class Options {
     var equationChoice = EquationChoice.sin
-    var femChoice = FemChoice.rectangle
+    var femChoice = FemChoice.eigenmode
     var applicationChoice = ApplicationWindow.FEM2D
     var colormap = Colormap.jet
     var drawWireframe: Bool = false

@@ -67,6 +67,8 @@ struct FEMControlPanel: View {
                 Text("Rectangle").tag(FemChoice.rectangle)
                 Text("Charged Cylinder").tag(FemChoice.chargedCylinder)
                 Text("Waveguide").tag(FemChoice.waveguide)
+                Text("Eigenmode").tag(FemChoice.eigenmode)
+
 
             }
 

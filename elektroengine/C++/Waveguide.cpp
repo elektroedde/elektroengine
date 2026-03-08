@@ -1,10 +1,3 @@
-//
-//  Waveguide.cpp
-//  elektroengine
-//
-//  Created by Edvin Berling on 2026-03-06.
-//
-
 #include "Waveguide.hpp"
 #include <cmath>
 

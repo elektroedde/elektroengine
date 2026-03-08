@@ -1,5 +1,7 @@
 import Accelerate
+// MARK: Rewrite this whole file
 
+// MARK: Solver
 class Solver {
     static var N: Int = 0
     static var M: Int = 0
@@ -103,6 +105,39 @@ class Solver {
         let t2 = CFAbsoluteTimeGetCurrent()
         if(printDebug) {  print(String(format: "Assembly took: %.0f ms", (t2 - t1)*1000)) }
 
+    }
+    
+    /// Assembles A and B matrices for the eigenvalue problem A x = λ B x.
+    static func assembleEigenvalueMatrix(A: inout [Float], B: inout [Float]) {
+        let t1 = CFAbsoluteTimeGetCurrent()
+
+        for element in 0..<M {
+            let n0 = model.nodes[element * 3 + 0]
+            let n1 = model.nodes[element * 3 + 1]
+            let n2 = model.nodes[element * 3 + 2]
+            let nodes = [n0, n1, n2]
+
+            let x = [model.vertices[n0].x, model.vertices[n1].x, model.vertices[n2].x]
+            let y = [model.vertices[n0].y, model.vertices[n1].y, model.vertices[n2].y]
+
+            let area = abs(0.5 * (x[0]*(y[1] - y[2]) + x[1]*(y[2] - y[0]) + x[2]*(y[0] - y[1])))
+
+            let b_e  = [y[1] - y[2], y[2] - y[0], y[0] - y[1]]
+            let c_e = [x[2] - x[1], x[0] - x[2], x[1] - x[0]]
+
+            let material: Float = model.material.count > 0 ? model.material[element] : 1
+
+            for i in 0..<3 {
+                for j in 0..<3 {
+                    let dirac: Float = i == j ? 1 : 0
+                    A[nodes[j] * N + nodes[i]] += (material * b_e[i] * b_e[j] + material * c_e[i] * c_e[j]) / (4 * area)
+                    B[nodes[j] * N + nodes[i]] += area * (1 + dirac) / 12
+                }
+            }
+        }
+
+        let t2 = CFAbsoluteTimeGetCurrent()
+        if(printDebug) { print(String(format: "Eigenvalue assembly took: %.0f ms", (t2 - t1)*1000)) }
     }
 
     static func setDirichlet(K: inout [Float], b: inout [Float]) {
@@ -257,5 +292,153 @@ class Solver {
         let t2 = CFAbsoluteTimeGetCurrent()
         if(printDebug) {  print(String(format: "LAPACK cgesv_ took: %.0f ms", (t2 - t1)*1000)) }
         return x
+    }
+
+    // MARK: - Eigenvalue Solver
+
+    /// Solves the generalized eigenvalue problem A x = λ B x using LAPACK ssygvx_.
+    /// Rewrite this whole file, spl
+    static func solveEigenvalue(_ A: inout [Float], _ B: inout [Float], numModes: Int) -> (eigenvalues: [Float], eigenvectors: [[Float]])? {
+        let t1 = CFAbsoluteTimeGetCurrent()
+        let n = N
+        let m = min(numModes, n)
+
+        var eigenvalues = [Float](repeating: 0, count: n)
+        var lda = __LAPACK_int(n)
+        var ldb = __LAPACK_int(n)
+        var ldz = __LAPACK_int(n)
+        var info: __LAPACK_int = 0
+        var numFound: __LAPACK_int = 0
+
+        // Eigenvector output matrix (column-major, n x m)
+        var Z = [Float](repeating: 0, count: n * m)
+        var ifail = [__LAPACK_int](repeating: 0, count: n)
+
+        // Unused bounds for range='I' mode
+        var vl: Float = 0
+        var vu: Float = 0
+        var abstol: Float = 0
+
+        // Query optimal workspace size
+        var workQuery: Float = 0
+        var lwork: __LAPACK_int = -1
+        var iwork = [__LAPACK_int](repeating: 0, count: 5 * n)
+
+        withUnsafePointer(to: __LAPACK_int(1)) { itype in
+            withUnsafePointer(to: Int8(Character("V").asciiValue!)) { jobz in
+                withUnsafePointer(to: Int8(Character("I").asciiValue!)) { range in
+                    withUnsafePointer(to: Int8(Character("U").asciiValue!)) { uplo in
+                        withUnsafePointer(to: __LAPACK_int(n)) { nPtr in
+                            withUnsafePointer(to: __LAPACK_int(1)) { il in
+                                withUnsafePointer(to: __LAPACK_int(m)) { iu in
+                                    ssygvx_(itype, jobz, range, uplo, nPtr,
+                                            &A, &lda,
+                                            &B, &ldb,
+                                            &vl, &vu,
+                                            il, iu,
+                                            &abstol,
+                                            &numFound,
+                                            &eigenvalues,
+                                            &Z, &ldz,
+                                            &workQuery, &lwork,
+                                            &iwork, &ifail,
+                                            &info)
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        if info != 0 {
+            print("LAPACK ssygvx_ workspace query error \(info)")
+            return nil
+        }
+
+        lwork = __LAPACK_int(workQuery)
+        var work = [Float](repeating: 0, count: Int(lwork))
+
+        // Restore A and B since the workspace query may have modified them
+        // We need to re-assemble — but ssygvx_ workspace query with lwork=-1
+        // should not modify the matrices. Proceed with the solve.
+
+        withUnsafePointer(to: __LAPACK_int(1)) { itype in
+            withUnsafePointer(to: Int8(Character("V").asciiValue!)) { jobz in
+                withUnsafePointer(to: Int8(Character("I").asciiValue!)) { range in
+                    withUnsafePointer(to: Int8(Character("U").asciiValue!)) { uplo in
+                        withUnsafePointer(to: __LAPACK_int(n)) { nPtr in
+                            withUnsafePointer(to: __LAPACK_int(1)) { il in
+                                withUnsafePointer(to: __LAPACK_int(m)) { iu in
+                                    ssygvx_(itype, jobz, range, uplo, nPtr,
+                                            &A, &lda,
+                                            &B, &ldb,
+                                            &vl, &vu,
+                                            il, iu,
+                                            &abstol,
+                                            &numFound,
+                                            &eigenvalues,
+                                            &Z, &ldz,
+                                            &work, &lwork,
+                                            &iwork, &ifail,
+                                            &info)
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        if info != 0 {
+            print("LAPACK ssygvx_ error \(info)")
+            return nil
+        }
+
+        // Z contains eigenvectors in columns
+        var eigenvectors: [[Float]] = []
+        for i in 0..<Int(numFound) {
+            var vec = [Float](repeating: 0, count: n)
+            for j in 0..<n {
+                vec[j] = Z[i * n + j]
+            }
+            eigenvectors.append(vec)
+        }
+
+        let t2 = CFAbsoluteTimeGetCurrent()
+        if(printDebug) { print(String(format: "LAPACK ssygvx_ found %d eigenvalues in %.0f ms", numFound, (t2 - t1)*1000)) }
+        return (Array(eigenvalues.prefix(Int(numFound))), eigenvectors)
+    }
+
+    
+    static func solveEigen(model: FEM_Model, numModes: Int = 10, printDebug: Bool = false) -> (eigenvalues: [Float], eigenvectors: [[Float]])? {
+        self.model = model
+        self.complex = false
+        N = self.model!.N
+        M = self.model!.M
+        multiplier = 1
+        self.printDebug = printDebug
+
+        if(printDebug) { print("=== Starting Eigenvalue Solver ===") }
+
+        var A = [Float](repeating: 0, count: N * N)
+        var B = [Float](repeating: 0, count: N * N)
+
+        assembleEigenvalueMatrix(A: &A, B: &B)
+
+        
+        let penalty: Float = 1e15
+        for k in model.dirichletNodes {
+            for j in 0..<N {
+                A[k * N + j] = 0
+                A[j * N + k] = 0
+                B[k * N + j] = 0
+                B[j * N + k] = 0
+            }
+            A[k * N + k] = penalty
+            B[k * N + k] = penalty
+        }
+
+        return solveEigenvalue(&A, &B, numModes: numModes)
     }
 }

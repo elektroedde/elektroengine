@@ -19,6 +19,10 @@ class FEM2DScene: SceneX {
     lazy var waveguide: Waveguide = {
         Waveguide(device: Renderer.device)
     }()
+    
+    lazy var eigenmode: Eigenmode = {
+        Eigenmode(device: Renderer.device)
+    }()
 
 
     var camera: any Camera
@@ -31,9 +35,7 @@ class FEM2DScene: SceneX {
 
     init() {
         camera = GraphCamera()
-        gmsh_rectangle.transform.position.z -= 0.01
-        charged_cylinder.transform.position.z -= 0.01
-        waveguide.transform.position.z -= 0.01
+        background.transform.position.z += 0.001
 
         //charged_cylinder.transform.position.z -= 0.01
         //background.transform.position.z += 0.0001
@@ -52,12 +54,14 @@ class FEM2DScene: SceneX {
 
         background.draw(renderEncoder: renderEncoder, params: params, uniforms: uniforms)
         if(options.femChoice == .rectangle) {
-            gmsh_rectangle.draw(renderEncoder: renderEncoder, params: params, uniforms: uniforms)
+            gmsh_rectangle.draw(renderEncoder: renderEncoder, params: params, uniforms: uniforms, options: options)
         } else if(options.femChoice == .chargedCylinder) {
             charged_cylinder.draw(renderEncoder: renderEncoder, params: params, uniforms: uniforms, options: options)
         } else if(options.femChoice == .waveguide) {
             waveguide.draw(renderEncoder: renderEncoder, params: params, uniforms: uniforms, options: options)
-        }     
+        } else if(options.femChoice == .eigenmode) {
+            eigenmode.draw(renderEncoder: renderEncoder, params: params, uniforms: uniforms, options: options)
+        }
 
     }
 }

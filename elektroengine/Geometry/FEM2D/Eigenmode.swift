@@ -1,6 +1,6 @@
 import MetalKit
 
-struct GMSH_Rectangle: Transformable {
+struct Eigenmode: Transformable {
     var pipelineState: MTLRenderPipelineState!
     var transform = Transform()
     var highlighted: Bool = false
@@ -13,35 +13,22 @@ struct GMSH_Rectangle: Transformable {
 
     init(device: MTLDevice) {
         pipelineState = PipelineStates.createFEMPSO()
-        let mesh = getMeshPoints()
+        let mesh = getEigenmode()
         
-
+        
         for v in mesh.nodes {
+            print(v)
             femObject.nodes.append(Int(v-1))
-            femObject.f.append(0)
 
         }
-        for val in mesh.nodeCoords {
-            femObject.vertices.append(Vertex(x: Float(val[0]), y: Float(val[1]), z: Float(val[2])))
+        for i in stride(from: 0, to: mesh.nodeCoords.count, by: 3) {
+            femObject.vertices.append(Vertex(x: Float(mesh.nodeCoords[i]), y: Float(mesh.nodeCoords[i+1]), z: Float(mesh.nodeCoords[i+2])))
         }
 
-        for node in mesh.physicalGroup1_nodes {
-            femObject.dirichletNodes.append(Int(node-1))
-            femObject.dirichletValues.append(1)
-        }
-        for node in mesh.physicalGroup2_nodes {
+        for node in mesh.boundaryNodes {
             femObject.dirichletNodes.append(Int(node-1))
             femObject.dirichletValues.append(0)
         }
-
-        //for v in mesh.oneDimElements {
-        //    femObject.robinElements.append(Int(v-1))
-        //    femObject.q.append(1)
-        //    femObject.gamma.append(1)
-        //}
-        //for node in mesh.oneDimNodeTags {
-        //    femObject.robinNodes.append(Int(node-1))
-        //}
 
         guard let vertexBuffer = device.makeBuffer(bytes: femObject.vertices, length: MemoryLayout<Vertex>.stride * femObject.vertices.count, options: []) else {
             fatalError("Could not create vertex buffer")
@@ -53,9 +40,14 @@ struct GMSH_Rectangle: Transformable {
         }
 
         let startTime = CFAbsoluteTimeGetCurrent()
-        femValues = Solver.solve(model: femObject, printDebug: true)
+        guard let result = Solver.solveEigen(model: femObject, numModes: 3, printDebug: true) else {
+            fatalError("Eigenvalue solver failed")
+        }
         let endTime = CFAbsoluteTimeGetCurrent()
+        print("Eigenvalues (first 10): \(result.eigenvalues.prefix(10))")
         print("Total time for the solver: \(String(format: "%.0f", (endTime - startTime)*1000))ms\n")
+
+        femValues = result.eigenvectors[0]
 
 
         guard let femBuffer = device.makeBuffer(bytes: &femValues, length: MemoryLayout<Float>.stride * femValues.count, options: []) else {
@@ -74,11 +66,16 @@ struct GMSH_Rectangle: Transformable {
         params.minFem = femValues.min() ?? 0
         params.maxFem = femValues.max() ?? 1
         params.colormapChoice = options.colormap.rawValue
-        renderEncoder.setTriangleFillMode(.fill)
+        let fillMode: MTLTriangleFillMode = options.drawWireframe ? .lines : .fill
+        params.showContours = options.showContours
+        renderEncoder.setTriangleFillMode(fillMode)
         uniforms.modelMatrix = transform.modelMatrix
 
         renderEncoder.setVertexBuffer(vertexBuffer, offset: 0, index: VertexBuffer.index)
+        
         renderEncoder.setVertexBuffer(femBuffer, offset: 0, index: FEMBuffer.index)
+        
+        
         renderEncoder.setVertexBytes(&uniforms, length: MemoryLayout<Uniforms>.stride, index: UniformsBuffer.index)
         renderEncoder.setFragmentBytes(&params, length: MemoryLayout<Params>.stride, index: ParamsBuffer.index)
 
