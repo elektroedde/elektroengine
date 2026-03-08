@@ -2,7 +2,7 @@
 #include <metal_stdlib>
 using namespace metal;
 
-
+// test
 float3 drawGrid(float x, float y, int width, int height) {
     if(int(x) == width/2 || int(y) == height/2) {
         return float3(1, 1, 1);

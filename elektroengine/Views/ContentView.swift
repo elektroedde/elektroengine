@@ -9,18 +9,9 @@ struct ContentView: View {
     @State var options = Options()
     var body: some View {
         VStack {
-            Picker(
-                selection: $options.applicationChoice,
-                label: Text("Application Choice")) {
-                    Text("FEM2D").tag(ApplicationWindow.FEM2D)
-                    Text("FEM3D").tag(ApplicationWindow.FEM3D)
-                    Text("Graphing2D").tag(ApplicationWindow.Graphing2D)
-                    Text("Graphing3D").tag(ApplicationWindow.Graphing3D)
-                }
-
-                .pickerStyle(SegmentedPickerStyle())
-                .frame(width: width, height: interfaceHeight)
-
+            
+            ApplicationPicker(options: $options)
+            
             MetalView(options: options)
                 .frame(width: width, height: height)
             HStack {
@@ -45,6 +36,25 @@ struct ContentView: View {
 
 #Preview {
     ContentView()
+}
+
+struct ApplicationPicker: View {
+    @Binding var options: Options
+
+    
+    var body: some View {
+        Picker(
+            selection: $options.applicationChoice,
+            label: Text("Application Choice")) {
+                Text("FEM2D").tag(ApplicationWindow.FEM2D)
+                Text("FEM3D").tag(ApplicationWindow.FEM3D)
+                Text("Graphing2D").tag(ApplicationWindow.Graphing2D)
+                Text("Graphing3D").tag(ApplicationWindow.Graphing3D)
+            }
+            .frame(width: width, height: interfaceHeight)
+
+            .pickerStyle(SegmentedPickerStyle())
+    }
 }
 
 struct FEMControlPanel: View {

@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		52F6FF092F53A02700FD959E /* libgmsh.4.15.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 52F6FF082F53A02600FD959E /* libgmsh.4.15.1.dylib */; };
+		E4A8020F2F5D9A95003BC822 /* libgmsh.4.15.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 52F6FF082F53A02600FD959E /* libgmsh.4.15.1.dylib */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -33,7 +33,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				52F6FF092F53A02700FD959E /* libgmsh.4.15.1.dylib in Frameworks */,
+				E4A8020F2F5D9A95003BC822 /* libgmsh.4.15.1.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -295,7 +295,7 @@
 				);
 				GENERATE_INFOPLIST_FILE = YES;
 				HEADER_SEARCH_PATHS = (
-					/opt/gmsh/include,
+					/opt/homebrew/Cellar/gmsh/4.15.1/include,
 					"/C++",
 				);
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
@@ -369,7 +369,7 @@
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
 				HEADER_SEARCH_PATHS = (
-					/opt/gmsh/include,
+					/opt/homebrew/Cellar/gmsh/4.15.1/include,
 					"/C++",
 				);
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
