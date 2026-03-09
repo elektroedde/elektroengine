@@ -13,7 +13,7 @@ struct GMSH_Rectangle: Transformable {
 
     init(device: MTLDevice) {
         pipelineState = PipelineStates.createFEMPSO()
-        let mesh = getMeshPoints()
+        let mesh = getRectangle()
         
 
         for v in mesh.nodes {
@@ -21,27 +21,34 @@ struct GMSH_Rectangle: Transformable {
             femObject.f.append(0)
 
         }
-        for val in mesh.nodeCoords {
-            femObject.vertices.append(Vertex(x: Float(val[0]), y: Float(val[1]), z: Float(val[2])))
+        for i in stride(from: 0, to: mesh.nodeCoords.count, by: 3) {
+            femObject.vertices.append(Vertex(x: Float(mesh.nodeCoords[i]), y: Float(mesh.nodeCoords[i+1]), z: Float(mesh.nodeCoords[i+2])))
         }
 
-        for node in mesh.physicalGroup1_nodes {
+        for node in mesh.topBoundaryNodes {
             femObject.dirichletNodes.append(Int(node-1))
             femObject.dirichletValues.append(1)
         }
-        for node in mesh.physicalGroup2_nodes {
+        for node in mesh.bottomBoundaryNodes {
             femObject.dirichletNodes.append(Int(node-1))
             femObject.dirichletValues.append(0)
         }
 
-        //for v in mesh.oneDimElements {
-        //    femObject.robinElements.append(Int(v-1))
-        //    femObject.q.append(1)
-        //    femObject.gamma.append(1)
-        //}
-        //for node in mesh.oneDimNodeTags {
-        //    femObject.robinNodes.append(Int(node-1))
-        //}
+        for v in mesh.rightBoundaryElementTags {
+            femObject.robinElements.append(Int(v-1))
+            femObject.q.append(1)
+            femObject.gamma.append(1)
+        
+        }
+        for node in mesh.rightBoundaryElementNodes {
+            femObject.robinNodes.append(Int(node-1))
+            print(node)
+        }
+        
+        print("now")
+        for node in mesh.rightBoundaryNodes {
+            print(node)
+        }
 
         guard let vertexBuffer = device.makeBuffer(bytes: femObject.vertices, length: MemoryLayout<Vertex>.stride * femObject.vertices.count, options: []) else {
             fatalError("Could not create vertex buffer")

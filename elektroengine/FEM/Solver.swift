@@ -190,15 +190,15 @@ class Solver {
             let length = sqrt(dx*dx + dy*dy)
 
             // Complex q and gamma: [real, imag] pairs
-            let qr = model.qComplex[multiplier * k]
-            let gr = model.gammaComplex[multiplier * k]
+            let qr = model.q[multiplier * k]
+            let gr = model.gamma[multiplier * k]
 
 
             var qi: Float = 0
             var gi: Float = 0
             if(complex) {
-                qi = model.qComplex[multiplier * k + 1]
-                gi = model.gammaComplex[multiplier * k + 1]
+                qi = model.q[multiplier * k + 1]
+                gi = model.gamma[multiplier * k + 1]
             }
 
             for i in 0..<2 {

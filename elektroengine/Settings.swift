@@ -39,8 +39,33 @@ enum Colormap: Int32, CaseIterable {
     }
 }
 
-enum FemChoice {
+enum FemChoice: CaseIterable {
     case rectangle, chargedCylinder, waveguide, eigenmode
+    
+    var label: String {
+        switch self {
+        case .rectangle: "Rectangle"
+        case .chargedCylinder: "Charged Cylinder"
+        case .waveguide: "Waveguide"
+        case .eigenmode: "Eigenmode"
+        }
+    }
+}
+
+enum EigenmodeNumber: CaseIterable {
+    case one, two, three, four, five, six, seven
+    
+    var label: String {
+        switch self {
+        case .one: "1"
+        case .two: "2"
+        case .three: "3"
+        case .four: "4"
+        case .five: "5"
+        case .six: "6"
+        case .seven: "7"
+        }
+    }
 }
 
 @Observable
@@ -51,4 +76,5 @@ class Options {
     var colormap = Colormap.jet
     var drawWireframe: Bool = false
     var showContours: Bool = false
+    var eigenmodeNumber = EigenmodeNumber.one
 }

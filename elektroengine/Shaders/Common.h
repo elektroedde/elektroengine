@@ -4,8 +4,6 @@
 
 #ifndef __METAL_VERSION__
 #import "meshing.hpp"
-#import "Waveguide.hpp"
-#import "Eigenmode.hpp"
 #endif
 
 typedef struct {

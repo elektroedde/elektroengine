@@ -2,9 +2,9 @@
 
 EigenmodeData getEigenmode() {
     // Geometry
-    float width = 10;
+    float width = 12;
     float height = 5;
-    float meshSize = width / 50;
+    float meshSize = width / 20;
 
     // Gmsh setup
     gmsh::initialize();
@@ -29,6 +29,7 @@ EigenmodeData getEigenmode() {
     gmsh::model::mesh::getNodes(unused_st, nodeCoords, unused_d);
     gmsh::model::mesh::getNodesByElementType(1, boundaryNodes, unused_d, unused_d);
 
+    gmsh::finalize();
     // Pack result
     EigenmodeData data;
     data.nodes = nodes;

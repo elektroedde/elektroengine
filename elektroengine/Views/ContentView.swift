@@ -15,7 +15,7 @@ struct ContentView: View {
             MetalView(options: options)
                 .frame(width: width, height: height)
             HStack {
-                Spacer()
+                
 
                 switch options.applicationChoice {
                 case .FEM2D:
@@ -61,18 +61,33 @@ struct FEMControlPanel: View {
     @Binding var options: Options
 
     var body: some View {
-        Picker(
-            selection: $options.femChoice,
-            label: Text("FEM Model")) {
-                Text("Rectangle").tag(FemChoice.rectangle)
-                Text("Charged Cylinder").tag(FemChoice.chargedCylinder)
-                Text("Waveguide").tag(FemChoice.waveguide)
-                Text("Eigenmode").tag(FemChoice.eigenmode)
+        VStack {
+            Text("Select FEM Model")
+            Menu(options.femChoice.label) {
+                ForEach(FemChoice.allCases, id: \.self) { femChoice in
+                    Button(femChoice.label) {
+                        options.femChoice = femChoice
+                    }
+                }
+            }.padding(.leading, 10)
+        }
+        
+        Spacer()
 
-
+            
+        if(options.femChoice == .eigenmode) {
+            VStack {
+                Text("Select eigenmode:")
+                Menu(options.eigenmodeNumber.label) {
+                    ForEach(EigenmodeNumber.allCases, id: \.self) { eigenmodeNumber in
+                        Button(eigenmodeNumber.label) {
+                            options.eigenmodeNumber = eigenmodeNumber
+                        }
+                    }
+                }
             }
-
-            .pickerStyle(SegmentedPickerStyle())
+            
+        }
         Toggle("Show contours", isOn: $options.showContours)
 
         Toggle("Render wireframe", isOn: $options.drawWireframe)
