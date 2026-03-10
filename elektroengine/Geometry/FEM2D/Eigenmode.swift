@@ -26,7 +26,6 @@ struct Eigenmode: Transformable {
         
         
         for v in mesh.nodes {
-            print(v)
             femObject.nodes.append(Int(v-1))
 
         }
@@ -34,10 +33,10 @@ struct Eigenmode: Transformable {
             femObject.vertices.append(Vertex(x: Float(mesh.nodeCoords[i]), y: Float(mesh.nodeCoords[i+1]), z: Float(mesh.nodeCoords[i+2])))
         }
 
-        //for node in mesh.boundaryNodes {
-        //    femObject.dirichletNodes.append(Int(node-1))
-        //    femObject.dirichletValues.append(0)
-        //}
+        for node in mesh.boundaryNodes {
+            femObject.dirichletNodes.append(Int(node-1))
+            femObject.dirichletValues.append(0)
+        }
 
         guard let vertexBuffer = device.makeBuffer(bytes: femObject.vertices, length: MemoryLayout<Vertex>.stride * femObject.vertices.count, options: []) else {
             fatalError("Could not create vertex buffer")
@@ -53,7 +52,7 @@ struct Eigenmode: Transformable {
             fatalError("Eigenvalue solver failed")
         }
         let endTime = CFAbsoluteTimeGetCurrent()
-        print("Eigenvalues (first 10): \(result.eigenvalues.prefix(20))")
+        //print("Eigenvalues (first 7): \(result.eigenvalues.prefix(7))")
         print("Total time for the solver: \(String(format: "%.0f", (endTime - startTime)*1000))ms\n")
 
         femValues = result.eigenvectors[0]

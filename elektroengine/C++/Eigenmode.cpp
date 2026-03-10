@@ -2,14 +2,16 @@
 
 EigenmodeData getEigenmode() {
     // Geometry
-    float width = 12;
-    float height = 5;
-    float meshSize = width / 20;
+    float width = 14;
+    float height = 6;
+    float meshSize = width / 100;
 
     // Gmsh setup
     gmsh::initialize();
     gmsh::option::setNumber("General.Terminal", 0);
+    gmsh::option::setNumber("Mesh.CharacteristicLengthMin", meshSize);
     gmsh::option::setNumber("Mesh.CharacteristicLengthMax", meshSize);
+
     gmsh::model::occ::addRectangle(-width/2, -height/2, 0, width, height);
     
     gmsh::model::occ::synchronize();

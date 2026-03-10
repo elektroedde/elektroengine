@@ -44,10 +44,10 @@ struct Waveguide: Transformable {
 
         for v in mesh.leftBoundaryElementTags {
             femObject.robinElements.append(Int(v-1))
-            femObject.qComplex.append(qLeftBoundary.real)
-            femObject.qComplex.append(qLeftBoundary.imag)
-            femObject.gammaComplex.append(gammaLeftBoundary.real)
-            femObject.gammaComplex.append(gammaLeftBoundary.imag)
+            femObject.q.append(qLeftBoundary.real)
+            femObject.q.append(qLeftBoundary.imag)
+            femObject.gamma.append(gammaLeftBoundary.real)
+            femObject.gamma.append(gammaLeftBoundary.imag)
         }
         for node in mesh.leftBoundaryElementNodes {
             femObject.robinNodes.append(Int(node-1))
@@ -55,10 +55,10 @@ struct Waveguide: Transformable {
 
         for v in mesh.rightBoundaryElementTags {
             femObject.robinElements.append(Int(v-1))
-            femObject.qComplex.append(qRightBoundary.real)
-            femObject.qComplex.append(qRightBoundary.imag)
-            femObject.gammaComplex.append(gammaRightBoundary.real)
-            femObject.gammaComplex.append(gammaRightBoundary.imag)
+            femObject.q.append(qRightBoundary.real)
+            femObject.q.append(qRightBoundary.imag)
+            femObject.gamma.append(gammaRightBoundary.real)
+            femObject.gamma.append(gammaRightBoundary.imag)
         }
 
         for node in mesh.rightBoundaryElementNodes {
