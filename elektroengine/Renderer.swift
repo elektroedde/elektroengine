@@ -51,10 +51,17 @@ extension Renderer {
     func mtkView(_ view: MTKView, drawableSizeWillChange size: CGSize) {
         params.width = UInt32(size.width)
         params.height = UInt32(size.height)
-        print("Resizing")
     }
     
-    func draw(scene: SceneX, in view: MTKView) {
+    func draw(scene: BaseScene, in view: MTKView) {
+        if scene.usesComputePipeline {
+            drawCompute(scene: scene, in: view)
+        } else {
+            drawRender(scene: scene, in: view)
+        }
+    }
+    
+    private func drawRender(scene: BaseScene, in view: MTKView) {
         guard let commandBuffer = Self.commandQueue.makeCommandBuffer(),
               let descriptor = view.currentRenderPassDescriptor,
               let renderEncoder = commandBuffer.makeRenderCommandEncoder(descriptor: descriptor) else {
@@ -64,11 +71,31 @@ extension Renderer {
         uniforms.viewMatrix = scene.camera.viewMatrix
         uniforms.projectionMatrix = scene.camera.projectionMatrix
         renderEncoder.setDepthStencilState(depthStencilState)
+        
         scene.draw(renderEncoder: renderEncoder, params: params, uniforms: uniforms, options: options)
         
         renderEncoder.endEncoding()
         
         guard let drawable = view.currentDrawable else { return }
+        commandBuffer.present(drawable)
+        commandBuffer.commit()
+    }
+    
+    private func drawCompute(scene: BaseScene, in view: MTKView) {
+        view.framebufferOnly = false
+        
+        guard let commandBuffer = Self.commandQueue.makeCommandBuffer(),
+              let drawable = view.currentDrawable,
+              let computeEncoder = commandBuffer.makeComputeCommandEncoder() else {
+            return
+        }
+        
+        uniforms.viewMatrix = scene.camera.viewMatrix
+        uniforms.projectionMatrix = scene.camera.projectionMatrix
+        
+        scene.drawCompute(computeEncoder: computeEncoder, texture: drawable.texture, options: options)
+        
+        computeEncoder.endEncoding()
         commandBuffer.present(drawable)
         commandBuffer.commit()
     }

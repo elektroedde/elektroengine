@@ -2,7 +2,7 @@
 import SwiftUI
 
 @main
-struct Graphing2DApp: App {
+struct elektroengineApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()

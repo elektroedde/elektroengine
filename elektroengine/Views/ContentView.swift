@@ -1,40 +1,32 @@
-
 import SwiftUI
-
-let interfaceHeight: CGFloat = 50
-let width: CGFloat = 2420/2
-let height: CGFloat = 1668/2 - interfaceHeight
 
 struct ContentView: View {
     @State var options = Options()
+
     var body: some View {
         VStack {
-            MetalView(options: options).border(Color.black, width: 2)
-                .frame(width: width, height: height)
+            ApplicationPicker(options: $options)
+
+            MetalView(options: options)
+                .frame(width: Settings.width, height: Settings.height)
+
             HStack {
-
-                Picker(
-                    selection: $options.applicationChoice,
-                    label: Text("Application choice")) {
-                        Text("FEM").tag(ApplicationWindow.FEM)
-                        Text("Graphing2D").tag(ApplicationWindow.Graphing2D)
-                        Text("Graphing3D").tag(ApplicationWindow.Graphing3D)
-                    }
-
-                    .pickerStyle(SegmentedPickerStyle())
-
-                Spacer()
-
                 switch options.applicationChoice {
-                case .FEM:
-                    FEMControlPanel(options: $options)
+                case .FEM2D:
+                    FEM2DControlPanel(options: $options)
+                case .FEM3D:
+                    EmptyView()
                 case .Graphing2D:
-                    TempControl(options: $options)
+                    Graphing2DControlPanel(options: $options)
                 case .Graphing3D:
+                    Graphing3DControlPanel(options: $options)
+                case .RayMarching:
+                    EmptyView()
+                case .Particles:
                     EmptyView()
                 }
-
-            }.frame(width: width, height: interfaceHeight)
+            }
+            .frame(width: Settings.width, height: Settings.interfaceHeight)
         }
         .ignoresSafeArea()
     }
@@ -44,59 +36,16 @@ struct ContentView: View {
     ContentView()
 }
 
-struct FEMControlPanel: View {
+struct ApplicationPicker: View {
     @Binding var options: Options
 
     var body: some View {
-        Menu {
-            Button("Google Turbo") {
-                options.colormap = .googleTurbo
+        Picker(selection: $options.applicationChoice, label: Text("Application Choice")) {
+            ForEach(ApplicationWindow.allCases, id: \.self) { app in
+                Text(app.label).tag(app)
             }
-            Button("Viridis") {
-                options.colormap = .viridis
-            }
-            Button("Inferno") {
-                options.colormap = .inferno
-            }
-            Button("Plasma") {
-                options.colormap = .plasma
-            }
-            Button("cividis") {
-                options.colormap = .cividis
-            }
-            Button("Magma") {
-                options.colormap = .magma
-            }
-            Button("jet") {
-                options.colormap = .jet
-            }
-            Button("Turbo") {
-                options.colormap = .turbo
-            }
-        } label: {
-            Text("colormap")
         }
-
-        Button() {
-            print("SOlved")
-        } label: {
-            Text("Solve")
-        }
-    }
-}
-
-struct TempControl: View {
-    @Binding var options: Options
-    var body: some View {
-        Picker(
-            selection: $options.equationChoice,
-            label: Text("Render Options")) {
-                Text("sin").tag(EquationChoice.sin)
-                Text("cos").tag(EquationChoice.cos)
-                Text("exp").tag(EquationChoice.exp)
-                Text("vector").tag(EquationChoice.vector)
-            }
-
-            .pickerStyle(SegmentedPickerStyle())
+        .frame(width: Settings.width, height: Settings.interfaceHeight)
+        .pickerStyle(SegmentedPickerStyle())
     }
 }

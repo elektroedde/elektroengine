@@ -3,7 +3,7 @@ import Observation
 
 class ApplicationController: NSObject {
     var renderer: Renderer
-    private var currentScene: SceneX
+    private var currentScene: BaseScene
     var options: Options
     private var lastApplicationChoice: ApplicationWindow
     
@@ -19,6 +19,7 @@ class ApplicationController: NSObject {
         super.init()
         metalView.delegate = self
         mtkView(metalView, drawableSizeWillChange: metalView.drawableSize)
+        updateMouseLock()
     }
     
     func checkForSceneChange() {
@@ -29,17 +30,29 @@ class ApplicationController: NSObject {
         }
     }
 
-    private static func createScene(for app: ApplicationWindow) -> SceneX {
+    private static func createScene(for app: ApplicationWindow) -> BaseScene {
         switch app {
-        case .FEM: return FEMScene()
-        case .Graphing2D: return Graphing2DScene()
-        case .Graphing3D: return Graphing3DScene()
+        case .FEM2D:        return FEM2DScene()
+        case .FEM3D:        return FEM3DScene()
+        case .Graphing2D:   return Graphing2DScene()
+        case .Graphing3D:   return Graphing3DScene()
+        case .RayMarching:  return RayMarchingScene()
+        case .Particles:    return ParticlesScene()
         }
     }
     private func switchScene(to app: ApplicationWindow) {
         currentScene = Self.createScene(for: app)
         if let metalView = renderer.metalView {
             currentScene.update(size: metalView.drawableSize)
+        }
+        updateMouseLock()
+    }
+
+    private func updateMouseLock() {
+        if currentScene.camera is FPCamera {
+            InputController.shared.lockMouse()
+        } else {
+            InputController.shared.unlockMouse()
         }
     }
 }

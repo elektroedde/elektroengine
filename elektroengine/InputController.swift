@@ -1,4 +1,7 @@
 import GameController
+#if os(macOS)
+import AppKit
+#endif
 
 struct Point {
     var x: Float
@@ -7,8 +10,26 @@ struct Point {
 }
 class InputController {
     static let shared = InputController()
-
     var canMouseDown = false
+    private var mouseLocked = false
+
+    func lockMouse() {
+        #if os(macOS)
+        guard !mouseLocked else { return }
+        mouseLocked = true
+        CGAssociateMouseAndMouseCursorPosition(0)
+        NSCursor.hide()
+        #endif
+    }
+
+    func unlockMouse() {
+        #if os(macOS)
+        guard mouseLocked else { return }
+        mouseLocked = false
+        CGAssociateMouseAndMouseCursorPosition(1)
+        NSCursor.unhide()
+        #endif
+    }
     var leftMouseDown = false
     var rightClick: CGPoint = .zero
     var mouseDelta = Point.zero
@@ -23,9 +44,41 @@ class InputController {
         leftMouseDown = touchDelta != nil
       }
     }
+    
+    
+    var keysPressed: Set<GCKeyCode> = []
+
+    
 
     init() {
         let center = NotificationCenter.default
+        center.addObserver(
+          forName: .GCKeyboardDidConnect,
+          object: nil,
+          queue: nil) { notification in
+            let keyboard = notification.object as? GCKeyboard
+              keyboard?.keyboardInput?.keyChangedHandler
+                = { _, _, keyCode, pressed in
+              if pressed {
+                if keyCode == .escape {
+                    if self.mouseLocked {
+                        self.unlockMouse()
+                    } else {
+                        self.lockMouse()
+                    }
+                }
+                self.keysPressed.insert(keyCode)
+              } else {
+                self.keysPressed.remove(keyCode)
+              }
+            }
+        }
+    #if os(macOS)
+      NSEvent.addLocalMonitorForEvents(
+        matching: [.keyUp, .keyDown]) { _ in nil }
+    #endif
+        
+        
         center.addObserver(forName: .GCMouseDidConnect, object: nil, queue: nil) { notification in
             let mouse = notification.object as? GCMouse
 

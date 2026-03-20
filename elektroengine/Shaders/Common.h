@@ -1,4 +1,3 @@
-
 #ifndef Common_h
 #define Common_h
 #import <simd/simd.h>
@@ -7,7 +6,7 @@
 #import "meshing.hpp"
 #endif
 
-typedef struct {
+struct Params {
     unsigned int width;
     unsigned int height;
     float minY;
@@ -15,7 +14,17 @@ typedef struct {
     float minFem;
     float maxFem;
     int colormapChoice;
-} Params;
+    bool showContours;
+    
+    float surfaceMinX;
+    float surfaceMaxX;
+    float surfaceMinY;
+    float surfaceMaxY;
+    float surfaceMinZ;
+    float surfaceMaxZ;
+    unsigned int xmode;
+    unsigned int zmode;
+};
 
 typedef struct {
     matrix_float4x4 modelMatrix;
@@ -23,14 +32,25 @@ typedef struct {
     matrix_float4x4 projectionMatrix;
 } Uniforms;
 
-typedef enum {
+struct VectorInstance{
+    vector_float2 position;
+    float rotation;
+};
+
+enum BufferIndices {
     VertexBuffer = 0,
     UniformsBuffer = 11,
     ParamsBuffer = 12,
-    FEMBuffer = 13
-} BufferIndices;
+    FEMBuffer = 13,
+    InstanceBuffer = 14
+};
 
-
-
+struct Particle {
+    vector_float2 position;
+    vector_float2 velocity;
+    vector_float2 acceleration;
+    float direction;
+    float speed;
+};
 
 #endif /* Common_h */

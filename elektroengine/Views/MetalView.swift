@@ -1,24 +1,17 @@
-
 import SwiftUI
 import MetalKit
 
 struct MetalView: View {
     let options: Options
-    #if os(macOS)
-    @State private var metalView = MTKView()
-    #elseif os(iOS)
-    @State private var metalView = MTKView()
-    #endif
+    @State private var metalView = MyMTKView()
     @State private var applicationController: ApplicationController?
-
     @State private var previousTranslation = CGSize.zero
     @State private var previousScroll: CGFloat = 1
-
 
     var body: some View {
         MetalViewRepresentable(applicationController: applicationController, metalView: $metalView, options: options)
             .onAppear {
-                /// We initialize the renderer only when metalview first appears
+                // We initialize the renderer only when metalview first appears
                 applicationController = ApplicationController(metalView: metalView, options: options)
             }
             .gesture(DragGesture(minimumDistance: 0)
@@ -35,6 +28,11 @@ struct MetalView: View {
                 }
                 .onEnded {_ in
                   previousTranslation = .zero
+
+                    // bug fix, temp
+                  InputController.shared.leftMouseDown = false
+                  InputController.shared.canMouseDown = false
+                  InputController.shared.touchDelta = nil
               })
             .gesture(MagnificationGesture()
                 .onChanged { value in
@@ -45,27 +43,14 @@ struct MetalView: View {
                 .onEnded {_ in
                     previousScroll = 1
                 })
-            
     }
 }
 
-#if os(macOS)
-typealias ViewRepresentable = NSViewRepresentable
-#elseif os(iOS)
-typealias ViewRepresentable = UIViewRepresentable
-#endif
-
-struct MetalViewRepresentable: ViewRepresentable {
+struct MetalViewRepresentable: NSViewRepresentable {
     let applicationController: ApplicationController?
-
-    #if os(macOS)
-    @Binding var metalView: MTKView
-    #elseif os(iOS)
-    @Binding var metalView: MTKView
-    #endif
+    @Binding var metalView: MyMTKView
     let options: Options
 
-#if os(macOS)
     func makeNSView(context: Context) -> some NSView {
         let trackingArea = NSTrackingArea(rect: metalView.bounds, options: [.activeWhenFirstResponder, .mouseMoved, .enabledDuringMouseDrag], owner: self, userInfo: nil)
         metalView.addTrackingArea(trackingArea)
@@ -74,30 +59,12 @@ struct MetalViewRepresentable: ViewRepresentable {
     func updateNSView(_ uiView: NSViewType, context: Context) {
         updateMetalView()
     }
-#elseif os(iOS)
-  func makeUIView(context: Context) -> MTKView {
-      metalView
-    }
 
-  func updateUIView(_ uiView: MTKView, context: Context) {
-      updateMetalView()
-    }
-#endif
-
-  func updateMetalView() {
-      applicationController?.options = options
+    func updateMetalView() {
+        applicationController?.options = options
     }
 }
 
-#Preview {
-    VStack {
-        MetalView(options: Options())
-    }
-}
-
-
-
-#if os(macOS)
 class MyMTKView: MTKView {
     override func mouseDown(with event: NSEvent) {
         InputController.shared.canMouseDown = true
@@ -107,4 +74,3 @@ class MyMTKView: MTKView {
         InputController.shared.canMouseDown = false
     }
 }
-#endif

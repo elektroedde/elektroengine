@@ -1,6 +1,6 @@
 import MetalKit
 
-struct GMSH_Rectangle: Transformable {
+struct ChargedCylinder: Transformable {
     var pipelineState: MTLRenderPipelineState!
     var transform = Transform()
     var highlighted: Bool = false
@@ -13,33 +13,35 @@ struct GMSH_Rectangle: Transformable {
 
     init(device: MTLDevice) {
         pipelineState = PipelineStates.createFEMPSO()
-        let mesh = getMeshPoints()
-        
+        let mesh = createChargeCylinder()
 
-        for v in mesh.nodes {
-            femObject.nodes.append(Int(v-1))
+        // All vertices (GMSH node tags are 1-based)
+        for val in mesh.allNodeTags {
+            femObject.nodes.append(Int(val)-1)
+            femObject.f.append(0)
+
         }
-        for val in mesh.nodeCoords {
+        for val in mesh.allNodeCoords {
             femObject.vertices.append(Vertex(x: Float(val[0]), y: Float(val[1]), z: Float(val[2])))
+
         }
 
-        for node in mesh.physicalGroup1_nodes {
-            femObject.dirichletNodes.append(Int(node-1))
-            femObject.dirichletValues.append(1)
+        for v in mesh.allElementTags {
+            femObject.allElements.append(Int(v-1))
+            femObject.material.append(1)
         }
-        for node in mesh.physicalGroup2_nodes {
-            femObject.dirichletNodes.append(Int(node-1))
+
+        for (i, _) in mesh.cylinderElementTags.enumerated() {
+            femObject.f[i] = 100
+
+        }
+
+
+        for v in mesh.boundaryNodes {
+            femObject.dirichletNodes.append(Int(v-1))
             femObject.dirichletValues.append(0)
         }
 
-        for v in mesh.oneDimElements {
-            femObject.robinElements.append(Int(v-1))
-            femObject.q.append(1)
-            femObject.gamma.append(1)
-        }
-        for node in mesh.oneDimNodeTags {
-            femObject.robinNodes.append(Int(node-1))
-        }
 
         guard let vertexBuffer = device.makeBuffer(bytes: femObject.vertices, length: MemoryLayout<Vertex>.stride * femObject.vertices.count, options: []) else {
             fatalError("Could not create vertex buffer")
@@ -50,10 +52,11 @@ struct GMSH_Rectangle: Transformable {
             fatalError("Could not create index buffer")
         }
 
+
         let startTime = CFAbsoluteTimeGetCurrent()
-        femValues = Solver.solve(femObject: femObject)
+        femValues = Solver.solve(model: femObject, printDebug: true)
         let endTime = CFAbsoluteTimeGetCurrent()
-        print("The solver took \(String(format: "%.0f", (endTime - startTime)*1000))ms")
+        print("Total time for the solver: \(String(format: "%.0f", (endTime - startTime)*1000))ms\n")
 
         guard let femBuffer = device.makeBuffer(bytes: &femValues, length: MemoryLayout<Float>.stride * femValues.count, options: []) else {
             fatalError("Could not create FEM buffer")
@@ -64,9 +67,12 @@ struct GMSH_Rectangle: Transformable {
         self.femBuffer = femBuffer
     }
 
-    func draw(renderEncoder: MTLRenderCommandEncoder, params fragment: Params, uniforms vertex: Uniforms) {
+    func draw(renderEncoder: MTLRenderCommandEncoder, params fragment: Params, uniforms vertex: Uniforms, options: Options) {
         renderEncoder.setRenderPipelineState(pipelineState)
         var params = fragment
+        params.minFem = femValues.min() ?? 0
+        params.maxFem = femValues.max() ?? 1
+        params.colormapChoice = options.colormap.rawValue
         var uniforms = vertex
         renderEncoder.setTriangleFillMode(.fill)
         uniforms.modelMatrix = transform.modelMatrix
