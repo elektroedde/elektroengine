@@ -17,6 +17,19 @@ struct Graphing3DControlPanel: View {
 
         Spacer()
 
+        if options.surface == .waveguide {
+            VStack {
+                Text("Select TM Mode:")
+                Menu(options.tmMode.label) {
+                    ForEach(TMMode.allCases, id: \.self) { mode in
+                        Button(mode.label) {
+                            options.tmMode = mode
+                        }
+                    }
+                }
+            }
+        }
+
         Menu {
             ForEach(Colormap.allCases, id: \.self) { colormap in
                 Button(colormap.label) {

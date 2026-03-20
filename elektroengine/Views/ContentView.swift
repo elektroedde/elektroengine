@@ -1,9 +1,5 @@
 import SwiftUI
 
-let interfaceHeight: CGFloat = 50
-let width: CGFloat = 2420 / 2
-let height: CGFloat = 1668 / 2 - 2 * interfaceHeight
-
 struct ContentView: View {
     @State var options = Options()
 
@@ -12,7 +8,7 @@ struct ContentView: View {
             ApplicationPicker(options: $options)
 
             MetalView(options: options)
-                .frame(width: width, height: height)
+                .frame(width: Settings.width, height: Settings.height)
 
             HStack {
                 switch options.applicationChoice {
@@ -30,7 +26,7 @@ struct ContentView: View {
                     EmptyView()
                 }
             }
-            .frame(width: width, height: interfaceHeight)
+            .frame(width: Settings.width, height: Settings.interfaceHeight)
         }
         .ignoresSafeArea()
     }
@@ -49,7 +45,7 @@ struct ApplicationPicker: View {
                 Text(app.label).tag(app)
             }
         }
-        .frame(width: width, height: interfaceHeight)
+        .frame(width: Settings.width, height: Settings.interfaceHeight)
         .pickerStyle(SegmentedPickerStyle())
     }
 }

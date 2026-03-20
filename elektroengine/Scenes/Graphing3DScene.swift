@@ -15,7 +15,7 @@ class Graphing3DScene: BaseScene {
     var pointer: UnsafeMutablePointer<Vertex>!
 
     init() {
-        camera = ArcballCamera()
+        camera = FPCamera()
         camera.transform.rotation.x = Float(-30).degreesToRadians
         pointer = waveguide.vertexBuffer.contents().bindMemory(to: Vertex.self, capacity: waveguide.vertices.count)
 

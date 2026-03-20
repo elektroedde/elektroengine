@@ -25,8 +25,23 @@ vertex VertexOut vertex_graph(VertexIn in [[stage_in]],
 }
 
 vertex VertexOut vertex_vector(VertexIn in [[stage_in]],
-                              constant Uniforms &uniforms [[buffer(UniformsBuffer)]]) {
-    float4 position = uniforms.projectionMatrix * uniforms.viewMatrix * uniforms.modelMatrix * in.position;
+                              constant Uniforms &uniforms [[buffer(UniformsBuffer)]],
+                              const device VectorInstance *instances [[buffer(InstanceBuffer)]],
+                              uint instanceID [[instance_id]]) {
+    VectorInstance inst = instances[instanceID];
+
+    // 2D rotation matrix
+    float c = cos(inst.rotation);
+    float s = sin(inst.rotation);
+    float2 rotated = float2(c * in.position.x - s * in.position.y,
+                            s * in.position.x + c * in.position.y);
+
+    // Translate to instance position
+    float4 worldPos = float4(rotated.x + inst.position.x,
+                             rotated.y + inst.position.y,
+                             in.position.z, 1.0);
+
+    float4 position = uniforms.projectionMatrix * uniforms.viewMatrix * uniforms.modelMatrix * worldPos;
 
     VertexOut out;
     out.position = position;
@@ -70,9 +85,17 @@ vertex VertexOut vertex_gravity(VertexIn in [[stage_in]],
                                 constant float &timer [[buffer(20)]]) {
     
     
-    float3 planetPosition = float3(30*sin(timer/2), 0, 30*cos(timer/2));
-    float r = length(in.position.xyz - planetPosition);
-    in.position.y = -1000/(r*r);
+    float r = length(in.position.xz);
+    
+    float Rs = 10.0;
+    float height;
+    if (r >= Rs) {
+        height = 2.0 * sqrt(Rs * (r - Rs));
+    } else {
+        // Continue the funnel downward inside the Schwarzschild radius
+        height = -2.0 * sqrt(Rs * (Rs - r));
+    }
+    in.position.y = height;
     float4 worldPosition = uniforms.modelMatrix * in.position;
     float4 position = uniforms.projectionMatrix * uniforms.viewMatrix * worldPosition;
     

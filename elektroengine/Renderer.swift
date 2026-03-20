@@ -93,7 +93,7 @@ extension Renderer {
         uniforms.viewMatrix = scene.camera.viewMatrix
         uniforms.projectionMatrix = scene.camera.projectionMatrix
         
-        scene.drawCompute(computeEncoder: computeEncoder, texture: drawable.texture, params: params, uniforms: uniforms, options: options)
+        scene.drawCompute(computeEncoder: computeEncoder, texture: drawable.texture, options: options)
         
         computeEncoder.endEncoding()
         commandBuffer.present(drawable)

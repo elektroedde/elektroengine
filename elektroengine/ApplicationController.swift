@@ -19,6 +19,7 @@ class ApplicationController: NSObject {
         super.init()
         metalView.delegate = self
         mtkView(metalView, drawableSizeWillChange: metalView.drawableSize)
+        updateMouseLock()
     }
     
     func checkForSceneChange() {
@@ -43,6 +44,15 @@ class ApplicationController: NSObject {
         currentScene = Self.createScene(for: app)
         if let metalView = renderer.metalView {
             currentScene.update(size: metalView.drawableSize)
+        }
+        updateMouseLock()
+    }
+
+    private func updateMouseLock() {
+        if currentScene.camera is FPCamera {
+            InputController.shared.lockMouse()
+        } else {
+            InputController.shared.unlockMouse()
         }
     }
 }

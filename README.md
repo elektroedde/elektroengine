@@ -34,16 +34,28 @@
 
 ## Features
 
-### FEM — Finite Element Method Solver
+### FEM2D — Finite Element Method Solver
 Meshing is done by gmsh or manually programming vertices. The matrix assembly is done in Swift.
 
 TODO:
 - ✅ Complex number solutions [Added cgesv_ from LAPACK]
 
+### FEM3D
+TODO:
+- ❌ Simple box in gmsh
+- ❌ Solve Poisson equation (1 voltage on top surface, 0 voltage on bottom surface)
+- ❌ Visualize results in 2D and 3D
+
 ### Graphing 2D
 WIP
 
 ### Graphing 3D
+WIP
+
+### Ray Marching
+WIP
+
+### Particles
 WIP
 ---
 
@@ -51,7 +63,7 @@ WIP
 
 | Layer | Technology |
 |---|---|
-| Language | Swift 5.9+ |
+| Language | Swift 6 |
 | GPU Rendering | Metal (MSL shaders) |
 | Numerics / Solvers | Apple Accelerate |
 | Meshing | gmsh C++ |
@@ -84,12 +96,13 @@ elektroengine/
 
 ## Roadmap
 
-- [ ] Upgrade Metal 3 -> Metal 4
-- [ ] Fluid simulation (Navier-Stokes on GPU)
-- [ ] Electrostatic field solver
-- [ ] Export to CSV / image / video
-- [ ] Complex number / phase plotting in 2D
-- [ ] Particle simulation
+- ❌ Upgrade Metal 3 -> Metal 4
+- ❌ Export to CSV / image / video
+- ❌ Complex number / phase plotting in 2D
+- ❌ Implement 3D FEM solver
+- ❌ Improve vector field visualization
+- ✅ Electrostatic field solver
+- ✅ Particle simulation
 
 ---
 

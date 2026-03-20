@@ -25,8 +25,8 @@ struct GravitySurface: Transformable {
 
     var timer: Float = 0
     
-    let gridWidth: Int = 100
-    let gridHeight: Int = 100
+    let gridWidth: Int = 250
+    let gridHeight: Int = 250
     let surfaceWidth: Float = 100.0
     let surfaceHeight: Float = 100.0
 

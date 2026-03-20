@@ -90,7 +90,7 @@ struct Surface3D: Transformable {
         params.surfaceMinZ = minZ
         params.surfaceMaxZ = maxZ
         
-        switch(options.TMmode) {
+        switch(options.tmMode) {
         case .TM11:
             params.xmode = 1
             params.zmode = 1

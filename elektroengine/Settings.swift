@@ -1,13 +1,17 @@
 import SwiftUI
-import Observation
 
 // MARK: - App Settings
 
 enum Settings {
+    static let interfaceHeight: CGFloat = 50
+    static let width: CGFloat = 2420 / 2
+    static let height: CGFloat = 1668 / 2 - 2 * interfaceHeight
+    
     static var rotationSpeed: Float { 2.0 }
-    static var translationSpeed: Float { 3.0 }
+    static var movementSpeed: Float { 10.0 }
     static var mouseScrollSensitivity: Float { 0.1 }
     static var mousePanSensitivity: Float { 0.008 }
+    static var mouseLookSensitivity: Float { 0.005 }
     static var touchPanSensitivity: Float { 0.05 }
     static var touchZoomSensitivity: Float { 5.0 }
 }
@@ -29,8 +33,15 @@ enum ApplicationWindow: CaseIterable {
     }
 }
 
-enum EquationChoice {
-    case sin, cos, exp, vector
+enum EquationChoice: CaseIterable {
+    case sin, vector
+
+    var label: String {
+        switch self {
+        case .sin: "sin(x)"
+        case .vector: "Vector"
+        }
+    }
 }
 
 enum Colormap: Int32, CaseIterable {
@@ -95,7 +106,7 @@ enum EigenmodeNumber: CaseIterable {
     }
 }
 
-enum TM_modes: CaseIterable {
+enum TMMode: CaseIterable {
     case TM11, TM12, TM21, TM22, TM1010
 
     var label: String {
@@ -113,13 +124,13 @@ enum TM_modes: CaseIterable {
 
 @Observable
 class Options {
-    var applicationChoice = ApplicationWindow.Graphing3D
-    var equationChoice = EquationChoice.sin
+    var applicationChoice = ApplicationWindow.Particles
+    var equationChoice = EquationChoice.vector
     var femChoice = FemChoice.rectangle
     var colormap = Colormap.jet
     var drawWireframe = false
     var showContours = false
     var eigenmodeNumber = EigenmodeNumber.one
-    var TMmode = TM_modes.TM11
+    var tmMode = TMMode.TM11
     var surface = SurfaceChoice.gravity
 }
