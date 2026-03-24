@@ -17,6 +17,32 @@ fragment float4 fragment_background(constant Params &params [[buffer(ParamsBuffe
     return float4(color, 1);
 }
 
+fragment float4 fragment_colorbar_outline(constant Params &params [[buffer(ParamsBuffer)]],
+                              VertexOut in [[stage_in]]) {
+    return float4(1, 1, 1, 1);
+}
+
+fragment float4 fragment_colorbar(constant Params &params [[buffer(ParamsBuffer)]],
+                              VertexOut in [[stage_in]]) {
+
+    // Colorbar vertices span y=-0.9 to y=0.9, normalize to 0..1
+    float t = clamp((in.worldPos.y + 0.9) / 1.8, 0.0, 1.0);
+
+    float3 color;
+    switch(params.colormapChoice) {
+        case 0: color = jet(t); break;
+        case 1: color = viridis(t); break;
+        case 2: color = inferno(t); break;
+        case 3: color = plasma(t); break;
+        case 4: color = cividis(t); break;
+        case 5: color = magma(t); break;
+        case 6: color = turbo(t); break;
+        default: color = float3(1,1,1); break;
+    }
+
+    return float4(color, 1);
+}
+
 fragment float4 fragment_graph(constant Params &params [[buffer(ParamsBuffer)]],
                               VertexOut in [[stage_in]]) {
 

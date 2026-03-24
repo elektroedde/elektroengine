@@ -1,11 +1,11 @@
 import MetalKit
 
 enum VertexShaderType {
-    case background, graph, vector, fem, surface, gravity, particles
+    case background, colorbar, graph, vector, fem, surface, gravity, particles
 }
 
 enum FragmentShaderType {
-    case background, graph, vector, fem, surface, gravity, particles
+    case background, colorbar, colorbarOutline, graph, vector, fem, surface, gravity, particles
 }
 
 class ShaderLibrary {
@@ -21,6 +21,7 @@ class ShaderLibrary {
     
     static func createDefaultShaders() {
         vertexShaders.updateValue(VertexBackgroundShader(), forKey: .background)
+        vertexShaders.updateValue(VertexColorbarShader(), forKey: .colorbar)
         vertexShaders.updateValue(VertexGraphShader(), forKey: .graph)
         vertexShaders.updateValue(VertexVectorShader(), forKey: .vector)
         vertexShaders.updateValue(VertexFEMShader(), forKey: .fem)
@@ -29,6 +30,8 @@ class ShaderLibrary {
         vertexShaders.updateValue(VertexParticlesShader(), forKey: .particles)
         
         fragmentShaders.updateValue(FragmentBackgroundShader(), forKey: .background)
+        fragmentShaders.updateValue(FragmentColorbarShader(), forKey: .colorbar)
+        fragmentShaders.updateValue(FragmentColorbarOutlineShader(), forKey: .colorbarOutline)
         fragmentShaders.updateValue(FragmentGraphShader(), forKey: .graph)
         fragmentShaders.updateValue(FragmentVectorShader(), forKey: .vector)
         fragmentShaders.updateValue(FragmentFEMShader(), forKey: .fem)
@@ -66,6 +69,37 @@ struct VertexBackgroundShader: Shader {
 struct FragmentBackgroundShader: Shader {
     var name: String = "Background Fragment Shader"
     var functionName: String = "fragment_background"
+    var function: MTLFunction {
+        let function = ShaderLibrary.defaultLibrary.makeFunction(name: functionName)
+        function?.label = name
+        return function!
+    }
+}
+
+//MARK: Colorbar
+struct VertexColorbarShader: Shader {
+    var name: String = "Colorbar Vertex Shader"
+    var functionName: String = "vertex_colorbar"
+    var function: MTLFunction {
+        let function = ShaderLibrary.defaultLibrary.makeFunction(name: functionName)
+        function?.label = name
+        return function!
+    }
+}
+
+struct FragmentColorbarShader: Shader {
+    var name: String = "Colorbar Fragment Shader"
+    var functionName: String = "fragment_colorbar"
+    var function: MTLFunction {
+        let function = ShaderLibrary.defaultLibrary.makeFunction(name: functionName)
+        function?.label = name
+        return function!
+    }
+}
+
+struct FragmentColorbarOutlineShader: Shader {
+    var name: String = "Colorbar Outline Fragment Shader"
+    var functionName: String = "fragment_colorbar_outline"
     var function: MTLFunction {
         let function = ShaderLibrary.defaultLibrary.makeFunction(name: functionName)
         function?.label = name

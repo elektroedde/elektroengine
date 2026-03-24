@@ -14,6 +14,16 @@ vertex VertexOut vertex_background(VertexIn in [[stage_in]],
     return out;
 }
 
+vertex VertexOut vertex_colorbar(VertexIn in [[stage_in]],
+                                   constant Uniforms &uniforms [[buffer(UniformsBuffer)]]) {
+    VertexOut out;
+    out.position = in.position;
+    out.worldPos = in.position.xyz;
+    
+    return out;
+}
+
+
 vertex VertexOut vertex_graph(VertexIn in [[stage_in]],
                               constant Uniforms &uniforms [[buffer(UniformsBuffer)]]) {
     float4 position = uniforms.projectionMatrix * uniforms.viewMatrix * uniforms.modelMatrix * in.position;

@@ -10,6 +10,27 @@ struct MetalView: View {
 
     var body: some View {
         MetalViewRepresentable(applicationController: applicationController, metalView: $metalView, options: options)
+            .overlay {
+                GeometryReader { geo in
+                    let w = geo.size.width
+                    let h = geo.size.height
+                    
+                    let labelX = (0.875 + 1) / 2 * w
+                    let topY = (1 - 0.95) / 2 * h
+                    let bottomY = (1 - (-0.95)) / 2 * h
+
+                    Text(String(format: "%.3g", options.displayMaxValue))
+                        .font(.system(size: 12, design: .monospaced))
+                        .foregroundColor(.white)
+                        .position(x: labelX, y: topY)
+
+                    Text(String(format: "%.3g", options.displayMinValue))
+                        .font(.system(size: 12, design: .monospaced))
+                        .foregroundColor(.white)
+                        .position(x: labelX, y: bottomY)
+                }
+                .allowsHitTesting(false)
+            }
             .onAppear {
                 // We initialize the renderer only when metalview first appears
                 applicationController = ApplicationController(metalView: metalView, options: options)

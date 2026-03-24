@@ -124,12 +124,14 @@ enum TMMode: CaseIterable {
 
 @Observable
 class Options {
-    var applicationChoice = ApplicationWindow.Particles
+    var applicationChoice = ApplicationWindow.FEM2D
     var equationChoice = EquationChoice.vector
     var femChoice = FemChoice.rectangle
     var colormap = Colormap.jet
     var drawWireframe = false
     var showContours = false
+    var displayMinValue: Float = 0
+    var displayMaxValue: Float = 1
     var eigenmodeNumber = EigenmodeNumber.one
     var tmMode = TMMode.TM11
     var surface = SurfaceChoice.gravity

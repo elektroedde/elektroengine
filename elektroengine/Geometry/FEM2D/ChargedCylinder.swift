@@ -31,8 +31,9 @@ struct ChargedCylinder: Transformable {
             femObject.material.append(1)
         }
 
+        let eps0: Float = 8.854187817e-12
         for (i, _) in mesh.cylinderElementTags.enumerated() {
-            femObject.f[i] = 100
+            femObject.f[i] = 3/eps0
 
         }
 
@@ -65,6 +66,9 @@ struct ChargedCylinder: Transformable {
         self.vertexBuffer = vertexBuffer
         self.indexBuffer = indexBuffer
         self.femBuffer = femBuffer
+        
+        print("The max value of the solution is: ", femValues.max()!)
+        print("The min value of the solution is: ", femValues.min()!)
     }
 
     func draw(renderEncoder: MTLRenderCommandEncoder, params fragment: Params, uniforms vertex: Uniforms, options: Options) {
@@ -74,7 +78,10 @@ struct ChargedCylinder: Transformable {
         params.maxFem = femValues.max() ?? 1
         params.colormapChoice = options.colormap.rawValue
         var uniforms = vertex
-        renderEncoder.setTriangleFillMode(.fill)
+        
+        let fillMode: MTLTriangleFillMode = options.drawWireframe ? .lines : .fill
+        renderEncoder.setTriangleFillMode(fillMode)
+        
         uniforms.modelMatrix = transform.modelMatrix
 
         renderEncoder.setVertexBuffer(vertexBuffer, offset: 0, index: VertexBuffer.index)

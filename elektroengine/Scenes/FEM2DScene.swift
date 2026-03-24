@@ -5,6 +5,10 @@ class FEM2DScene: BaseScene {
     lazy var background: Background = {
         Background(device: Renderer.device)
     }()
+    
+    lazy var colorbar: Colorbar = {
+        Colorbar(device: Renderer.device)
+    }()
 
  
 
@@ -37,6 +41,7 @@ class FEM2DScene: BaseScene {
     init() {
         camera = GraphCamera()
         background.transform.position.z += 0.001
+        colorbar.transform.position.z -= 0.001
         
         pointer = eigenmode.femBuffer.contents().bindMemory(to: Float.self, capacity: eigenmode.femValues.count)
         //charged_cylinder.transform.position.z -= 0.01
@@ -55,6 +60,7 @@ class FEM2DScene: BaseScene {
     func draw(renderEncoder: MTLRenderCommandEncoder, params: Params, uniforms: Uniforms, options: Options) {
 
         background.draw(renderEncoder: renderEncoder, params: params, uniforms: uniforms)
+        colorbar.draw(renderEncoder: renderEncoder, params: params, uniforms: uniforms, options: options)
         if(options.femChoice == .rectangle) {
             gmsh_rectangle.draw(renderEncoder: renderEncoder, params: params, uniforms: uniforms, options: options)
         } else if(options.femChoice == .chargedCylinder) {
@@ -105,5 +111,15 @@ class FEM2DScene: BaseScene {
             eigenmode.draw(renderEncoder: renderEncoder, params: params, uniforms: uniforms, options: options)
         }
 
+        // Display values for the colorbar
+        let femValues: [Float]
+        switch options.femChoice {
+        case .rectangle:      femValues = gmsh_rectangle.femValues
+        case .chargedCylinder: femValues = charged_cylinder.femValues
+        case .waveguide:      femValues = waveguide.femValues
+        case .eigenmode:      femValues = eigenmode.femValues
+        }
+        options.displayMinValue = femValues.min() ?? 0
+        options.displayMaxValue = femValues.max() ?? 1
     }
 }

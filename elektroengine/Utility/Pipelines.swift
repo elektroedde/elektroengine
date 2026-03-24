@@ -20,6 +20,26 @@ enum PipelineStates {
         pipelineDescriptor.vertexDescriptor = MTLVertexDescriptor.defaultLayout
         return createPSO(descriptor: pipelineDescriptor)
     }
+    
+    static func createColorbarPSO() -> MTLRenderPipelineState {
+        let pipelineDescriptor = MTLRenderPipelineDescriptor()
+        pipelineDescriptor.vertexFunction = ShaderLibrary.vertex(.colorbar)
+        pipelineDescriptor.fragmentFunction = ShaderLibrary.fragment(.colorbar)
+        pipelineDescriptor.colorAttachments[0].pixelFormat = .bgra8Unorm
+        pipelineDescriptor.depthAttachmentPixelFormat = .depth32Float
+        pipelineDescriptor.vertexDescriptor = MTLVertexDescriptor.defaultLayout
+        return createPSO(descriptor: pipelineDescriptor)
+    }
+
+    static func createColorbarOutlinePSO() -> MTLRenderPipelineState {
+        let pipelineDescriptor = MTLRenderPipelineDescriptor()
+        pipelineDescriptor.vertexFunction = ShaderLibrary.vertex(.colorbar)
+        pipelineDescriptor.fragmentFunction = ShaderLibrary.fragment(.colorbarOutline)
+        pipelineDescriptor.colorAttachments[0].pixelFormat = .bgra8Unorm
+        pipelineDescriptor.depthAttachmentPixelFormat = .depth32Float
+        pipelineDescriptor.vertexDescriptor = MTLVertexDescriptor.defaultLayout
+        return createPSO(descriptor: pipelineDescriptor)
+    }
 
     static func createGraphPSO() -> MTLRenderPipelineState {
         let pipelineDescriptor = MTLRenderPipelineDescriptor()

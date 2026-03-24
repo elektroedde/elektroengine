@@ -34,21 +34,17 @@ struct GMSH_Rectangle: Transformable {
             femObject.dirichletValues.append(0)
         }
 
-        for v in mesh.rightBoundaryElementTags {
-            femObject.robinElements.append(Int(v-1))
-            femObject.q.append(1)
-            femObject.gamma.append(1)
+        //for v in mesh.rightBoundaryElementTags {
+        //    femObject.robinElements.append(Int(v-1))
+        //    femObject.q.append(1)
+        //    femObject.gamma.append(1)
+        //
+        //}
+        //for node in mesh.rightBoundaryElementNodes {
+        //    femObject.robinNodes.append(Int(node-1))
+        //}
         
-        }
-        for node in mesh.rightBoundaryElementNodes {
-            femObject.robinNodes.append(Int(node-1))
-            print(node)
-        }
-        
-        print("now")
-        for node in mesh.rightBoundaryNodes {
-            print(node)
-        }
+      
 
         guard let vertexBuffer = device.makeBuffer(bytes: femObject.vertices, length: MemoryLayout<Vertex>.stride * femObject.vertices.count, options: []) else {
             fatalError("Could not create vertex buffer")
@@ -72,6 +68,10 @@ struct GMSH_Rectangle: Transformable {
         self.vertexBuffer = vertexBuffer
         self.indexBuffer = indexBuffer
         self.femBuffer = femBuffer
+        
+        print("The max value of the solution is: ", femValues.max()!)
+        print("The min value of the solution is: ", femValues.min()!)
+
     }
 
     func draw(renderEncoder: MTLRenderCommandEncoder, params fragment: Params, uniforms vertex: Uniforms, options: Options) {
