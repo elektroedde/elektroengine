@@ -1,10 +1,10 @@
 #include "Rectangle.hpp"
 
-RectangleData getRectangle(float w, float h) {
+RectangleData createRectangle(float w, float h, float s) {
     // Geometry
     float width = w;
     float height = h;
-    float meshSize = width / 50;
+    float meshSize = s;
 
     // Gmsh setup
     gmsh::initialize();
@@ -30,15 +30,18 @@ RectangleData getRectangle(float w, float h) {
     gmsh::model::mesh::getNodes(unused_st, nodeCoords, unused_d);
     
     // Get nodes on boundaries for Dirichlet
+    vector<size_t> boundaryNodes;
     vector<size_t> topBoundaryNodes;
     vector<size_t> rightBoundaryNodes;
     vector<size_t> leftBoundaryNodes;
     vector<size_t> bottomBoundaryNodes;
     
-    gmsh::model::mesh::getNodes(bottomBoundaryNodes, unused_d, unused_d, 1, 1);
-    gmsh::model::mesh::getNodes(rightBoundaryNodes, unused_d, unused_d, 1, 2);
-    gmsh::model::mesh::getNodes(topBoundaryNodes, unused_d, unused_d, 1, 3);
-    gmsh::model::mesh::getNodes(leftBoundaryNodes, unused_d, unused_d, 1, 4);
+    
+    gmsh::model::mesh::getNodes(boundaryNodes, unused_d, unused_d, 1);
+    gmsh::model::mesh::getNodes(bottomBoundaryNodes, unused_d, unused_d, 1, 1, true);
+    gmsh::model::mesh::getNodes(rightBoundaryNodes, unused_d, unused_d, 1, 2, true);
+    gmsh::model::mesh::getNodes(topBoundaryNodes, unused_d, unused_d, 1, 3, true);
+    gmsh::model::mesh::getNodes(leftBoundaryNodes, unused_d, unused_d, 1, 4, true);
 
     // Get elements and node connectivity on boundaries for Robin
     vector<size_t> bottomBoundaryElementTags, bottomBoundaryElementNodes;
@@ -55,6 +58,8 @@ RectangleData getRectangle(float w, float h) {
     RectangleData data;
     data.nodes = nodes;
     data.nodeCoords = nodeCoords;
+    
+    data.boundaryNodes = boundaryNodes;
     data.topBoundaryNodes = topBoundaryNodes;
     data.bottomBoundaryNodes = bottomBoundaryNodes;
     data.leftBoundaryNodes = leftBoundaryNodes;

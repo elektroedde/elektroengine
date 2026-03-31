@@ -1,20 +1,14 @@
 import MetalKit
 
-struct Eigenmode: Transformable {
+struct RectangularEigenmodes: Transformable {
     var pipelineState: MTLRenderPipelineState!
+    var wireframePipelineState: MTLRenderPipelineState!
     var transform = Transform()
     var highlighted: Bool = false
     var femObject: FEM_Model = FEM_Model()
     var femValues: [Float] = []
-    var eigenmode1: [Float] = []
-    var eigenmode2: [Float] = []
-    var eigenmode3: [Float] = []
-    var eigenmode4: [Float] = []
-    var eigenmode5: [Float] = []
-    var eigenmode6: [Float] = []
-    var eigenmode7: [Float] = []
-
-
+    var eigenmodes: [[Float]] = []
+    var frequencies: [Float] = [Float](repeating: 0, count: 7)
 
     let vertexBuffer: MTLBuffer
     let indexBuffer: MTLBuffer
@@ -22,91 +16,114 @@ struct Eigenmode: Transformable {
 
     init(device: MTLDevice) {
         pipelineState = PipelineStates.createFEMPSO()
-        let mesh = getEigenmode()
-        
-        
+        wireframePipelineState = PipelineStates.createWireframePSO()
+        let mesh = createRectangle(14, 6, 14/30)
+
+        // Build connectivity (0-based)
         for v in mesh.nodes {
-            femObject.nodes.append(Int(v-1))
-
+            femObject.nodes.append(Int(v - 1))
         }
+
+        // Build vertex positions
         for i in stride(from: 0, to: mesh.nodeCoords.count, by: 3) {
-            femObject.vertices.append(Vertex(x: Float(mesh.nodeCoords[i]), y: Float(mesh.nodeCoords[i+1]), z: Float(mesh.nodeCoords[i+2])))
+            femObject.vertices.append(Vertex(x: Float(mesh.nodeCoords[i]),
+                                             y: Float(mesh.nodeCoords[i + 1]),
+                                             z: Float(mesh.nodeCoords[i + 2])))
         }
 
+        // Dirichlet boundary conditions
         for node in mesh.boundaryNodes {
-            femObject.dirichletNodes.append(Int(node-1))
+            femObject.dirichletNodes.append(Int(node - 1))
             femObject.dirichletValues.append(0)
         }
 
+        // Create GPU buffers
         guard let vertexBuffer = device.makeBuffer(bytes: femObject.vertices, length: MemoryLayout<Vertex>.stride * femObject.vertices.count, options: []) else {
             fatalError("Could not create vertex buffer")
         }
-
         let indexData = femObject.nodes.map { UInt16($0) }
         guard let indexBuffer = device.makeBuffer(bytes: indexData, length: MemoryLayout<UInt16>.stride * indexData.count, options: []) else {
             fatalError("Could not create index buffer")
         }
 
+        // Solve eigenvalue problem
         let startTime = CFAbsoluteTimeGetCurrent()
         guard let result = Solver.solveEigen(model: femObject, numModes: 7, printDebug: true) else {
             fatalError("Eigenvalue solver failed")
         }
         let endTime = CFAbsoluteTimeGetCurrent()
-        //print("Eigenvalues (first 7): \(result.eigenvalues.prefix(7))")
-        print("Total time for the solver: \(String(format: "%.0f", (endTime - startTime)*1000))ms\n")
+        print("Total time for the solver: \(String(format: "%.0f", (endTime - startTime) * 1000))ms\n")
 
-        femValues = result.eigenvectors[0]
-        eigenmode1 = result.eigenvectors[0]
-        eigenmode2 = result.eigenvectors[1]
-        eigenmode3 = result.eigenvectors[2]
-        eigenmode4 = result.eigenvectors[3]
-        eigenmode5 = result.eigenvectors[4]
-        eigenmode6 = result.eigenvectors[5]
-        eigenmode7 = result.eigenvectors[6]
+        // Store all eigenmodes
+        eigenmodes = result.eigenvectors
+        femValues = eigenmodes[0]
 
-        
-
+        // Compute cutoff frequencies
+        let eps0: Float = 8.854e-12
+        let mu0: Float = 1.257e-6
+        for i in 0..<result.eigenvalues.count {
+            frequencies[i] = sqrt(result.eigenvalues[i] / (eps0 * mu0)) / (2 * .pi * 1e6)
+        }
 
         guard let femBuffer = device.makeBuffer(bytes: &femValues, length: MemoryLayout<Float>.stride * femValues.count, options: []) else {
             fatalError("Could not create FEM buffer")
         }
-        
-        
 
         self.vertexBuffer = vertexBuffer
         self.indexBuffer = indexBuffer
         self.femBuffer = femBuffer
-        
-        
+    }
+
+    mutating func selectMode(_ mode: EigenmodeNumber, options: Options) {
+        let i = mode.index
+        femValues = eigenmodes[i]
+        options.fem2D.displayFrequency = frequencies[i]
+
+        let pointer = femBuffer.contents().bindMemory(to: Float.self, capacity: femValues.count)
+        for j in 0..<femValues.count {
+            pointer[j] = femValues[j]
+        }
     }
 
     func draw(renderEncoder: MTLRenderCommandEncoder, params fragment: Params, uniforms vertex: Uniforms, options: Options) {
-        
-       
+        options.fem2D.quantity = "Electric field - Z component"
+
         renderEncoder.setRenderPipelineState(pipelineState)
         var params = fragment
         var uniforms = vertex
         params.minFem = femValues.min() ?? 0
         params.maxFem = femValues.max() ?? 1
         params.colormapChoice = options.colormap.rawValue
-        let fillMode: MTLTriangleFillMode = options.drawWireframe ? .lines : .fill
-        
-        renderEncoder.setTriangleFillMode(fillMode)
         uniforms.modelMatrix = transform.modelMatrix
 
         renderEncoder.setVertexBuffer(vertexBuffer, offset: 0, index: VertexBuffer.index)
-        
         renderEncoder.setVertexBuffer(femBuffer, offset: 0, index: FEMBuffer.index)
-        
-        
         renderEncoder.setVertexBytes(&uniforms, length: MemoryLayout<Uniforms>.stride, index: UniformsBuffer.index)
         renderEncoder.setFragmentBytes(&params, length: MemoryLayout<Params>.stride, index: ParamsBuffer.index)
 
+        // Draw filled mesh
+        renderEncoder.setTriangleFillMode(.fill)
         renderEncoder.drawIndexedPrimitives(type: .triangle,
                                             indexCount: femObject.nodes.count,
                                             indexType: .uint16,
                                             indexBuffer: indexBuffer,
                                             indexBufferOffset: 0)
+
+        // Draw wireframe overlay with depth bias to avoid z-fighting
+        if options.fem2D.showMesh {
+            renderEncoder.setRenderPipelineState(wireframePipelineState)
+            renderEncoder.setTriangleFillMode(.lines)
+            renderEncoder.setDepthBias(-1, slopeScale: -1, clamp: 0)
+            renderEncoder.drawIndexedPrimitives(type: .triangle,
+                                                indexCount: femObject.nodes.count,
+                                                indexType: .uint16,
+                                                indexBuffer: indexBuffer,
+                                                indexBufferOffset: 0)
+            renderEncoder.setDepthBias(0, slopeScale: 0, clamp: 0)
+        }
+
+        options.displayMinValue = femValues.min() ?? 0
+        options.displayMaxValue = femValues.max() ?? 1
     }
 }
 

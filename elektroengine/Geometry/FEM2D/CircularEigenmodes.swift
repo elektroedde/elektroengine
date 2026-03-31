@@ -1,91 +1,67 @@
 import MetalKit
 
-struct Cube: Transformable {
+struct CircularEigenmodes: Transformable {
     var pipelineState: MTLRenderPipelineState!
     var wireframePipelineState: MTLRenderPipelineState!
     var transform = Transform()
+    var highlighted: Bool = false
+    var femObject: FEM_Model = FEM_Model()
     var femValues: [Float] = []
+    var eigenmodes: [[Float]] = []
+    var frequencies: [Float] = [Float](repeating: 0, count: 7)
 
     let vertexBuffer: MTLBuffer
     let indexBuffer: MTLBuffer
     let femBuffer: MTLBuffer
     let indexCount: Int
-    var femObject: FEM_Model = FEM_Model()
 
     init(device: MTLDevice) {
         pipelineState = PipelineStates.createFEMPSO()
         wireframePipelineState = PipelineStates.createWireframePSO()
-        let mesh = getCube(5, 5, 5)
+        let mesh = getCircle()
 
-        
-        // All node coordinates for FEM solving (includes interior nodes)
+        // Build connectivity (0-based)
+        for v in mesh.nodes {
+            femObject.nodes.append(Int(v - 1))
+        }
+
+        // Build vertex positions
         for i in stride(from: 0, to: mesh.nodeCoords.count, by: 3) {
-            femObject.nodeCoords.append(SIMD3<Float>(Float(mesh.nodeCoords[i]),
-                                                      Float(mesh.nodeCoords[i+1]),
-                                                      Float(mesh.nodeCoords[i+2])))
-        }
-        
-        // Surface vertices for rendering
-        let surfaceNodeSet = Set(mesh.surfaceNodes.map { Int($0 - 1) })
-        for idx in surfaceNodeSet.sorted() {
-            femObject.vertices.append(Vertex(x: femObject.nodeCoords[idx].x,
-                                             y: femObject.nodeCoords[idx].y,
-                                             z: femObject.nodeCoords[idx].z))
-        }
-        
-        // Tetrahedron connectivity (0-based)
-        for i in mesh.nodes {
-            femObject.nodes.append(Int(i-1))
-        }
-        
-        for node in mesh.topBoundaryNodes {
-            femObject.dirichletNodes.append(Int(node-1))
-            femObject.dirichletValues.append(1)
-        }
-        for node in mesh.bottomBoundaryNodes {
-            femObject.dirichletNodes.append(Int(node-1))
-            femObject.dirichletValues.append(0)
-        }
-        
-        for v in mesh.frontBoundaryElementTags {
-            femObject.robinElements.append(Int(v-1))
-            femObject.q.append(1)
-            femObject.gamma.append(1)
-            print(v)
-        
-        }
-        for node in mesh.frontBoundaryElementNodes {
-            femObject.robinNodes.append(Int(node-1))
-        }
-        
-        for v in mesh.leftBoundaryElementTags {
-            femObject.robinElements.append(Int(v-1))
-            femObject.q.append(1)
-            femObject.gamma.append(1)
-        
-        }
-        for node in mesh.leftBoundaryElementNodes {
-            femObject.robinNodes.append(Int(node-1))
+            femObject.vertices.append(Vertex(x: Float(mesh.nodeCoords[i]),
+                                             y: Float(mesh.nodeCoords[i + 1]),
+                                             z: Float(mesh.nodeCoords[i + 2])))
         }
 
-        // Remap surface triangle indices to the sorted surface vertex array
-        let sortedSurfaceNodes = surfaceNodeSet.sorted()
-        let remapTable = Dictionary(uniqueKeysWithValues: sortedSurfaceNodes.enumerated().map { ($1, $0) })
-        let indexData = mesh.surfaceNodes.map { UInt16(remapTable[Int($0 - 1)]!) }
-        indexCount = indexData.count
-
+        // Create GPU buffers
         guard let vertexBuffer = device.makeBuffer(bytes: femObject.vertices, length: MemoryLayout<Vertex>.stride * femObject.vertices.count, options: []) else {
             fatalError("Could not create vertex buffer")
         }
-
+        let indexData = femObject.nodes.map { UInt16($0) }
         guard let indexBuffer = device.makeBuffer(bytes: indexData, length: MemoryLayout<UInt16>.stride * indexData.count, options: []) else {
             fatalError("Could not create index buffer")
         }
+        indexCount = indexData.count
 
-        // Solve over all nodes, then extract values for surface vertices only
-        let femValues = Solver3D.solve(model: femObject, printDebug: true)
-        //femValues = sortedSurfaceNodes.map { allFemValues[$0] }
-        guard let femBuffer = device.makeBuffer(bytes: femValues, length: MemoryLayout<Float>.stride * femValues.count, options: []) else {
+        // Solve eigenvalue problem
+        let startTime = CFAbsoluteTimeGetCurrent()
+        guard let result = Solver.solveEigen(model: femObject, numModes: 7, printDebug: true) else {
+            fatalError("Eigenvalue solver failed")
+        }
+        let endTime = CFAbsoluteTimeGetCurrent()
+        print("Total time for the solver: \(String(format: "%.0f", (endTime - startTime) * 1000))ms\n")
+
+        // Store all eigenmodes
+        eigenmodes = result.eigenvectors
+        femValues = eigenmodes[0]
+
+        // Compute cutoff frequencies
+        let eps0: Float = 8.854e-12
+        let mu0: Float = 1.257e-6
+        for i in 0..<result.eigenvalues.count {
+            frequencies[i] = sqrt(result.eigenvalues[i] / (eps0 * mu0)) / (2 * .pi * 1e6)
+        }
+
+        guard let femBuffer = device.makeBuffer(bytes: &femValues, length: MemoryLayout<Float>.stride * femValues.count, options: []) else {
             fatalError("Could not create FEM buffer")
         }
 
@@ -94,7 +70,20 @@ struct Cube: Transformable {
         self.femBuffer = femBuffer
     }
 
+    mutating func selectMode(_ mode: EigenmodeNumber, options: Options) {
+        let i = mode.index
+        femValues = eigenmodes[i]
+        options.fem2D.displayFrequency = frequencies[i]
+
+        let pointer = femBuffer.contents().bindMemory(to: Float.self, capacity: femValues.count)
+        for j in 0..<femValues.count {
+            pointer[j] = femValues[j]
+        }
+    }
+
     func draw(renderEncoder: MTLRenderCommandEncoder, params fragment: Params, uniforms vertex: Uniforms, options: Options) {
+        options.fem2D.quantity = "Electric field - Z component"
+
         renderEncoder.setRenderPipelineState(pipelineState)
         var params = fragment
         var uniforms = vertex
@@ -108,7 +97,7 @@ struct Cube: Transformable {
         renderEncoder.setVertexBytes(&uniforms, length: MemoryLayout<Uniforms>.stride, index: UniformsBuffer.index)
         renderEncoder.setFragmentBytes(&params, length: MemoryLayout<Params>.stride, index: ParamsBuffer.index)
 
-        // Draw filled surface
+        // Draw filled mesh
         renderEncoder.setTriangleFillMode(.fill)
         renderEncoder.drawIndexedPrimitives(type: .triangle,
                                             indexCount: indexCount,
@@ -116,8 +105,8 @@ struct Cube: Transformable {
                                             indexBuffer: indexBuffer,
                                             indexBufferOffset: 0)
 
-        // Draw white wireframe on top with depth bias to avoid z-fighting
-        if(options.drawWireframe) {
+        // Draw wireframe overlay with depth bias to avoid z-fighting
+        if options.drawWireframe {
             renderEncoder.setRenderPipelineState(wireframePipelineState)
             renderEncoder.setTriangleFillMode(.lines)
             renderEncoder.setDepthBias(-1, slopeScale: -1, clamp: 0)
@@ -128,8 +117,6 @@ struct Cube: Transformable {
                                                 indexBufferOffset: 0)
             renderEncoder.setDepthBias(0, slopeScale: 0, clamp: 0)
         }
-        
-        
 
         options.displayMinValue = femValues.min() ?? 0
         options.displayMaxValue = femValues.max() ?? 1

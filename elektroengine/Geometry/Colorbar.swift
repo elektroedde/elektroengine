@@ -5,7 +5,7 @@ struct Colorbar: Transformable {
     var outlinePipelineState: MTLRenderPipelineState!
     var transform = Transform()
 
-    let border: Float = 0.005
+    let border: Float = 0.01
 
     var vertices: [Vertex] = [
         Vertex(x: 0.85, y: -0.9, z: 0),

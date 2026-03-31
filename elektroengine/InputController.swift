@@ -75,7 +75,14 @@ class InputController {
         }
     #if os(macOS)
       NSEvent.addLocalMonitorForEvents(
-        matching: [.keyUp, .keyDown]) { _ in nil }
+        matching: [.keyUp, .keyDown]) { event in
+          // Only consume key events when the Metal view has focus,
+          // so SwiftUI TextFields can still receive input.
+          if event.window?.firstResponder is MyMTKView {
+              return nil
+          }
+          return event
+      }
     #endif
         
         

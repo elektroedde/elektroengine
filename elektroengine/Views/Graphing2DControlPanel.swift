@@ -1,10 +1,10 @@
 import SwiftUI
 
 struct Graphing2DControlPanel: View {
-    @Binding var options: Options
+    @Bindable var options: Options
 
     var body: some View {
-        Picker(selection: $options.equationChoice, label: Text("Equation Choice")) {
+        Picker(selection: $options.graphing2D.equationChoice, label: Text("Equation Choice")) {
             ForEach(EquationChoice.allCases, id: \.self) { eq in
                 Text(eq.label).tag(eq)
             }

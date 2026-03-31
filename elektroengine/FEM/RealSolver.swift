@@ -2,7 +2,126 @@ import Accelerate
 
 class RealSolver {
     static var printDebug: Bool = false
+    
+    static func solve3D(model: FEM_Model, printDebug: Bool = false) -> [Float] {
+        let N = model.N3D
+        let M = model.M3D
+        
+        printDebug ? print("=== Starting 3D Real Solver ===") : ()
+        
+        var K = [Float](repeating: 0, count: N * N)
+        var b = [Float](repeating: 0, count: N)
+        
+        assemble3D(model: model, N: N, M: M, K: &K, b: &b)
+        
+        setRobin3D(model: model, N: N, K: &K, b: &b)
+        
+        setDirichlet3D(model: model, N: N, K: &K, b: &b)
+        
+        return solveLAPACK(&K, b, N: N)!
+    }
+    
+    static func assemble3D(model: FEM_Model, N: Int, M: Int, K: inout [Float], b: inout [Float]) {
+        
+        for element in 0..<M {
+            let n0 = model.nodes[element * 4 + 0]
+            let n1 = model.nodes[element * 4 + 1]
+            let n2 = model.nodes[element * 4 + 2]
+            let n3 = model.nodes[element * 4 + 3]
+            let nodes = [n0, n1, n2, n3]
+            
+            let x = [model.nodeCoords[n0].x, model.nodeCoords[n1].x, model.nodeCoords[n2].x, model.nodeCoords[n3].x]
+            let y = [model.nodeCoords[n0].y, model.nodeCoords[n1].y, model.nodeCoords[n2].y, model.nodeCoords[n3].y]
+            let z = [model.nodeCoords[n0].z, model.nodeCoords[n1].z, model.nodeCoords[n2].z, model.nodeCoords[n3].z]
+            
+            let volume = float4x4([1,    1,    1,    1],
+                                [x[0], x[1], x[2], x[3]],
+                                [y[0], y[1], y[2], y[3]],
+                                [z[0], z[1], z[2], z[3]]).determinant / 6
+            let alphax: Float = 1.0
+            let alphay: Float = 1.0
+            let alphaz: Float = 1.0
+            let f: Float = 0.0
+            
+            let b_e: [Float] = [
+                 det3(SIMD3(y[1],y[2],y[3]), SIMD3(z[1],z[2],z[3]), SIMD3(1,1,1)),
+                -det3(SIMD3(y[0],y[2],y[3]), SIMD3(z[0],z[2],z[3]), SIMD3(1,1,1)),
+                 det3(SIMD3(y[0],y[1],y[3]), SIMD3(z[0],z[1],z[3]), SIMD3(1,1,1)),
+                -det3(SIMD3(y[0],y[1],y[2]), SIMD3(z[0],z[1],z[2]), SIMD3(1,1,1)),
+            ]
+            
+            let c_e: [Float] = [
+                 det3(SIMD3(x[1],x[2],x[3]), SIMD3(z[1],z[2],z[3]), SIMD3(1,1,1)),
+                -det3(SIMD3(x[0],x[2],x[3]), SIMD3(z[0],z[2],z[3]), SIMD3(1,1,1)),
+                 det3(SIMD3(x[0],x[1],x[3]), SIMD3(z[0],z[1],z[3]), SIMD3(1,1,1)),
+                -det3(SIMD3(x[0],x[1],x[2]), SIMD3(z[0],z[1],z[2]), SIMD3(1,1,1)),
+            ]
+            
+            let d_e: [Float] = [
+                 det3(SIMD3(x[1],x[2],x[3]), SIMD3(y[1],y[2],y[3]), SIMD3(1,1,1)),
+                -det3(SIMD3(x[0],x[2],x[3]), SIMD3(y[0],y[2],y[3]), SIMD3(1,1,1)),
+                 det3(SIMD3(x[0],x[1],x[3]), SIMD3(y[0],y[1],y[3]), SIMD3(1,1,1)),
+                -det3(SIMD3(x[0],x[1],x[2]), SIMD3(y[0],y[1],y[2]), SIMD3(1,1,1)),
+            ]
+            
+            for i in 0..<4 {
+                //b[nodes[i]] += f * area / 3
+                b[nodes[i]] += f * volume / 4
+                for j in 0..<4 {
+                    let dirac: Float = (i == j) ? 1 : 0
+                    let K_eij = (alphax * b_e[i] * b_e[j] + alphay * c_e[i] * c_e[j] + alphaz * d_e[i] * d_e[j])/(36*volume)// 1/36volume * (alphax bi bj + alphay ci cj + alphaz di dj) + volume*beta/20 * (1+ delta_ij)
+                    K[nodes[j] * N + nodes[i]] += K_eij
+                }
+            }
+            
+        }
+    }
 
+    static func det3(_ c0: SIMD3<Float>, _ c1: SIMD3<Float>, _ c2: SIMD3<Float>) -> Float {
+        return float3x3(c0, c1, c2).determinant
+    }
+    
+    static func setRobin3D(model: FEM_Model, N: Int, K: inout [Float], b: inout [Float]) {
+        let t1 = CFAbsoluteTimeGetCurrent()
+
+        for k in 0..<model.robinElements.count {
+            let node1 = model.robinNodes[3 * k]
+            let node2 = model.robinNodes[3 * k + 1]
+            let node3 = model.robinNodes[3 * k + 2]
+            let nodes = [node1, node2, node3]
+
+            let p0 = model.nodeCoords[node1]
+            let p1 = model.nodeCoords[node2]
+            let p2 = model.nodeCoords[node3]
+
+            // Triangle area in 3D via cross product
+            let e1 = p1 - p0
+            let e2 = p2 - p0
+            let crossProduct = SIMD3<Float>(e1.y * e2.z - e1.z * e2.y,
+                                            e1.z * e2.x - e1.x * e2.z,
+                                            e1.x * e2.y - e1.y * e2.x)
+            let area = length(crossProduct) / 2
+
+            let qr = model.q[k]
+            let gr = model.gamma[k]
+
+            for i in 0..<3 {
+                b[nodes[i]] += qr * area / 3
+                for j in 0..<3 {
+                    let dirac: Float = (i == j) ? 1 : 0
+                    let scale = (1 + dirac) * area / 12
+                    K[nodes[j] * N + nodes[i]] += gr * scale
+                }
+            }
+        }
+
+        let t2 = CFAbsoluteTimeGetCurrent()
+        printDebug ? print(String(format: "⏰ Robin setup took: [%.0fms]", (t2 - t1)*1000)) : ()
+    }
+
+    static func setDirichlet3D(model: FEM_Model, N: Int, K: inout [Float], b: inout [Float]) {
+        setDirichlet(model: model, N: N, K: &K, b: &b)
+    }
     static func solve(model: FEM_Model, printDebug: Bool = false) -> [Float] {
         self.printDebug = printDebug
         let N = model.N
@@ -14,11 +133,11 @@ class RealSolver {
         var b = [Float](repeating: 0, count: N)
 
         assemble(model: model, N: N, M: M, K: &K, b: &b)
-        setDirichlet(model: model, N: N, K: &K, b: &b)
 
         if model.robinElements.count > 0 {
             setRobin(model: model, N: N, K: &K, b: &b)
         }
+        setDirichlet(model: model, N: N, K: &K, b: &b)
 
         return solveLAPACK(&K, b, N: N)!
     }
@@ -37,10 +156,16 @@ class RealSolver {
             let x = [model.vertices[n0].x, model.vertices[n1].x, model.vertices[n2].x]
             let y = [model.vertices[n0].y, model.vertices[n1].y, model.vertices[n2].y]
 
-            let area = 0.5 * (x[0]*(y[1] - y[2]) + x[1]*(y[2] - y[0]) + x[2]*(y[0] - y[1]))
-
+            
+            let area = float3x3([1, x[0], y[0]],
+                                [1, x[1], y[1]],
+                                [1, x[2], y[2]]).determinant / 2
+            
+    
             let b_e  = [y[1] - y[2], y[2] - y[0], y[0] - y[1]]
             let c_e = [x[2] - x[1], x[0] - x[2], x[1] - x[0]]
+            
+    
 
             let material: Float = model.material.count > 0 ? model.material[element] : 1
             let f: Float = model.f[element]
@@ -58,101 +183,7 @@ class RealSolver {
         let t2 = CFAbsoluteTimeGetCurrent()
         printDebug ? print(String(format: "⏰ Assembly took: [%.0fms]", (t2 - t1)*1000)) : ()
     }
-    
-    static func assembleQuadratic(model: FEM_Model, N: Int, M: Int, K: inout [Float], b: inout [Float]) {
-        let t1 = CFAbsoluteTimeGetCurrent()
 
-        for element in 0..<M {
-            let n0 = model.nodes[element * 3 + 0]
-            let n1 = model.nodes[element * 3 + 1]
-            let n2 = model.nodes[element * 3 + 2]
-            let nodes = [n0, n1, n2]
-
-            let x = [model.vertices[n0].x, model.vertices[n1].x, model.vertices[n2].x]
-            let y = [model.vertices[n0].y, model.vertices[n1].y, model.vertices[n2].y]
-            if(element == 12310) {
-                print("=== Node 1: ", x[0], y[0])
-                print("=== Node 2: ", x[1], y[1])
-                print("=== Node 3: ", x[2], y[2])
-                print("Now adding quadratic elements")
-                print("=== Node 4: ", (x[0]+x[1])/2, (y[0]+y[1])/2)
-                print("=== Node 5: ", (x[1]+x[2])/2, (y[1]+y[2])/2)
-                print("=== Node 6: ", (x[2]+x[0])/2, (y[2]+y[0])/2)
-
-
-
-
-            }
-
-            let area = 0.5 * (x[0]*(y[1] - y[2]) + x[1]*(y[2] - y[0]) + x[2]*(y[0] - y[1]))
-
-            let b_e  = [y[1] - y[2], y[2] - y[0], y[0] - y[1]]
-            let c_e = [x[2] - x[1], x[0] - x[2], x[1] - x[0]]
-
-            let material: Float = model.material.count > 0 ? model.material[element] : 1
-            let f: Float = model.f[element]
-            let beta: Float = 0
-            
-            var A_e = [Float](repeating: 0, count: 6*6)
-            var B_e = [Float](repeating: 0, count: 6*6)
-
-            for i in 0..<3 {
-                
-                for j in 0..<3 {
-                    let dirac: Float = (i == j) ? 1 : 0
-                    A_e[j * 6 + i] = (4*dirac - 1)/(12*area)*(b_e[i]*b_e[j] + c_e[i]*c_e[j])
-                }
-            }
-            
-            A_e[0*6 + 3] = -4*A_e[0*6 + 1]
-            A_e[1*6 + 3] = -4*A_e[0*6 + 1]
-            
-            A_e[0*6 + 5] = -4*A_e[2]
-            A_e[2*6 + 5] = -4*A_e[2]
-            
-            A_e[1*6 + 4] = -4*A_e[1*6 + 2]
-            A_e[2*6 + 4] = -4*A_e[1*6 + 2]
-            
-            A_e[4] = 0
-            A_e[1*6 + 5] = 0
-            A_e[2*6 + 3] = 0
-            
-            //Heres supposed to be alphax alphay later
-            A_e[3*6 + 3] = 2/(3*area)*(b_e[0]*b_e[0] + b_e[0]*b_e[1] + b_e[1]*b_e[1] + c_e[0]*c_e[0] + c_e[0]*c_e[1] + c_e[1]*c_e[1])
-            A_e[4*6 + 4] = 2/(3*area)*(b_e[1]*b_e[1] + b_e[1]*b_e[2] + b_e[2]*b_e[2] + c_e[1]*c_e[1] + c_e[1]*c_e[2] + c_e[2]*c_e[2])
-            A_e[5*6 + 5] = 2/(3*area)*(b_e[2]*b_e[2] + b_e[2]*b_e[0] + b_e[0]*b_e[0] + c_e[2]*c_e[2] + c_e[2]*c_e[0] + c_e[0]*c_e[0])
-            
-            A_e[3*6 + 4] = 1/(3*area)*(b_e[1]*b_e[2] + 2*b_e[0]*b_e[2] + b_e[0]*b_e[1] + b_e[1]*b_e[1] + c_e[1]*c_e[2] + 2*c_e[0]*c_e[2]+c_e[0]*c_e[1]+c_e[1]*c_e[1])
-            A_e[3*6 + 5] = 1/(3*area)*(b_e[0]*b_e[2] + 2*b_e[1]*b_e[2] + b_e[0]*b_e[1] + b_e[0]*b_e[0] + c_e[0]*c_e[2] + 2*c_e[1]*c_e[2]+c_e[0]*c_e[1]+c_e[0]*c_e[0])
-            A_e[4*6 + 5] = 1/(3*area)*(b_e[2]*b_e[0] + 2*b_e[1]*b_e[0] + b_e[1]*b_e[2] + b_e[2]*b_e[2] + c_e[2]*c_e[0] + 2*c_e[1]*c_e[0]+c_e[1]*c_e[2]+c_e[2]*c_e[2])
-
-            let bmat: [Float] = [6, -1, -1, 0, -4, 0,
-                                 -1, 6, -1, 0, 0, -4,
-                                 -1, -1, 6, -4, 0, 0,
-                                 0, 0, -4, 32, 16, 16,
-                                 -4, 0, 0, 16, 32, 16,
-                                 0, -4, 0, 16, 16, 32]
-            for i in 0..<6*6 {
-                B_e[i] = beta*area/180 * bmat[i]
-            }
-
-
-            //Now need to assemble K and b i think
-            // Get the 6 global node indices for this element
-            let localNodes = (0..<6).map { model.nodes[element * 6 + $0] }
-
-            for i in 0..<6 {
-                b[localNodes[i]] = 0  // appropriate quadratic load vector
-                for j in 0..<6 {
-                    K[localNodes[j] * N + localNodes[i]] += material * A_e[j * 6 + i] + B_e[j * 6 + i]
-                }
-            }
-            
-        }
-
-        let t2 = CFAbsoluteTimeGetCurrent()
-        printDebug ? print(String(format: "⏰ Assembly took: [%.0fms]", (t2 - t1)*1000)) : ()
-    }
 
     // MARK: - Boundary Conditions
 

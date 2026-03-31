@@ -1,6 +1,6 @@
 import MetalKit
 
-struct GMSH_Rectangle: Transformable {
+struct Square: Transformable {
     var pipelineState: MTLRenderPipelineState!
     var transform = Transform()
     var highlighted: Bool = false
@@ -10,10 +10,12 @@ struct GMSH_Rectangle: Transformable {
     let vertexBuffer: MTLBuffer
     let indexBuffer: MTLBuffer
     let femBuffer: MTLBuffer
-
+    
+    
+    
     init(device: MTLDevice) {
         pipelineState = PipelineStates.createFEMPSO()
-        let mesh = getRectangle(6, 6)
+        let mesh = createRectangle(6, 6)
         
 
         for v in mesh.nodes {
@@ -22,6 +24,14 @@ struct GMSH_Rectangle: Transformable {
 
         }
         for i in stride(from: 0, to: mesh.nodeCoords.count, by: 3) {
+            //Vertices are what we draw, need to add nodes as well
+            //Vertices are what we draw, need to add nodes as well
+            //Vertices are what we draw, need to add nodes as well
+            //Vertices are what we draw, need to add nodes as well
+            //Vertices are what we draw, need to add nodes as well
+            //Vertices are what we draw, need to add nodes as well
+            //Vertices are what we draw, need to add nodes as well
+
             femObject.vertices.append(Vertex(x: Float(mesh.nodeCoords[i]), y: Float(mesh.nodeCoords[i+1]), z: Float(mesh.nodeCoords[i+2])))
         }
 
@@ -34,15 +44,15 @@ struct GMSH_Rectangle: Transformable {
             femObject.dirichletValues.append(0)
         }
 
-        //for v in mesh.rightBoundaryElementTags {
-        //    femObject.robinElements.append(Int(v-1))
-        //    femObject.q.append(1)
-        //    femObject.gamma.append(1)
-        //
-        //}
-        //for node in mesh.rightBoundaryElementNodes {
-        //    femObject.robinNodes.append(Int(node-1))
-        //}
+        for v in mesh.rightBoundaryElementTags {
+            femObject.robinElements.append(Int(v-1))
+            femObject.q.append(1)
+            femObject.gamma.append(1)
+        
+        }
+        for node in mesh.rightBoundaryElementNodes {
+            femObject.robinNodes.append(Int(node-1))
+        }
         
       
 
@@ -55,23 +65,15 @@ struct GMSH_Rectangle: Transformable {
             fatalError("Could not create index buffer")
         }
 
-        let startTime = CFAbsoluteTimeGetCurrent()
-        femValues = Solver.solve(model: femObject, printDebug: true)
-        let endTime = CFAbsoluteTimeGetCurrent()
-        print("Total time for the solver: \(String(format: "%.0f", (endTime - startTime)*1000))ms\n")
-
-
+        femValues = [Float](repeating: -Float.greatestFiniteMagnitude, count: femObject.vertices.count)
         guard let femBuffer = device.makeBuffer(bytes: &femValues, length: MemoryLayout<Float>.stride * femValues.count, options: []) else {
             fatalError("Could not create FEM buffer")
         }
+        
 
         self.vertexBuffer = vertexBuffer
         self.indexBuffer = indexBuffer
         self.femBuffer = femBuffer
-        
-        print("The max value of the solution is: ", femValues.max()!)
-        print("The min value of the solution is: ", femValues.min()!)
-
     }
 
     func draw(renderEncoder: MTLRenderCommandEncoder, params fragment: Params, uniforms vertex: Uniforms, options: Options) {
@@ -96,6 +98,21 @@ struct GMSH_Rectangle: Transformable {
                                             indexType: .uint16,
                                             indexBuffer: indexBuffer,
                                             indexBufferOffset: 0)
+    }
+    
+    //Create a pointer to the femBuffer to overwrite it
+    mutating func solve() {
+        var ppointer = femBuffer.contents().bindMemory(to: Float.self, capacity: femValues.count)
+        let startTime = CFAbsoluteTimeGetCurrent()
+        femValues = Solver.solve(model: femObject, printDebug: true)
+        
+        let endTime = CFAbsoluteTimeGetCurrent()
+        print("Total time for the solver: \(String(format: "%.0f", (endTime - startTime)*1000))ms\n")
+        
+        for value in femValues {
+            ppointer.pointee = value
+            ppointer = ppointer.advanced(by: 1)
+        }
     }
 }
 

@@ -5,17 +5,16 @@
 //  Created by Edvin on 2026-03-09.
 //
 
-#ifndef Rectangle_hpp
-#define Rectangle_hpp
+#ifndef Cube_hpp
+#define Cube_hpp
 
 #include <stdio.h>
 #include <gmsh.h>
 using namespace std;
-struct RectangleData {
+struct CubeData {
     vector<size_t> nodes;
+    vector<size_t> surfaceNodes;
     vector<double> nodeCoords;
-    vector<size_t> boundaryNodes;
-    
     vector<size_t> topBoundaryNodes;
     vector<size_t> topBoundaryElementTags;
     vector<size_t> topBoundaryElementNodes;
@@ -31,7 +30,16 @@ struct RectangleData {
     vector<size_t> leftBoundaryNodes;
     vector<size_t> leftBoundaryElementTags;
     vector<size_t> leftBoundaryElementNodes;
+    
+    vector<size_t> frontBoundaryNodes;
+    vector<size_t> frontBoundaryElementTags;
+    vector<size_t> frontBoundaryElementNodes;
+    
+    vector<size_t> backBoundaryNodes;
+    vector<size_t> backBoundaryElementTags;
+    vector<size_t> backBoundaryElementNodes;
+
 };
 
-RectangleData createRectangle(float w = 5, float h = 5, float s = 1);
-#endif /* Rectangle_hpp */
+CubeData getCube(float w = 5, float h = 5, float d = 5);
+#endif /* Cube_hpp */

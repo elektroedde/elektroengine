@@ -7,6 +7,8 @@
 #import "Waveguide.hpp"
 #import "Eigenmode.hpp"
 #import "Rectangle.hpp"
+#import "Circle2D.hpp"
+#import "Cube.hpp"
 using namespace std;
 
 struct MeshData {

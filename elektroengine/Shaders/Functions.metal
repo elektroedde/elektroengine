@@ -63,9 +63,24 @@ float3 drawGrid2(float2 worldPos)
     float axisY = axisLine(worldPos.y, 3.0);
     float axis = max(axisX, axisY);
 
-    float3 color = float3(0.15) * minor;
+    float3 color = float3(0.25) * minor;
     color = mix(color, float3(0.35), major);
     color = mix(color, float3(1.0), axis);
+
+    return color;
+}
+
+float3 drawGridFEM2D(float2 worldPos)
+{
+    float minorScale = 1.0;
+
+    float minorX = line(worldPos.x, minorScale, 1.0);
+    float minorY = line(worldPos.y, minorScale, 1.0);
+    float minor = max(minorX, minorY);
+
+
+    float3 background = float3(0.3);
+    float3 color = mix(background, float3(0), minor);
 
     return color;
 }

@@ -1,15 +1,15 @@
 import SwiftUI
 
 struct Graphing3DControlPanel: View {
-    @Binding var options: Options
+    @Bindable var options: Options
 
     var body: some View {
         VStack {
             Text("Select Surface")
-            Menu(options.surface.label) {
+            Menu(options.graphing3D.surface.label) {
                 ForEach(SurfaceChoice.allCases, id: \.self) { surface in
                     Button(surface.label) {
-                        options.surface = surface
+                        options.graphing3D.surface = surface
                     }
                 }
             }
@@ -17,13 +17,13 @@ struct Graphing3DControlPanel: View {
 
         Spacer()
 
-        if options.surface == .waveguide {
+        if options.graphing3D.surface == .waveguide {
             VStack {
                 Text("Select TM Mode:")
-                Menu(options.tmMode.label) {
+                Menu(options.graphing3D.tmMode.label) {
                     ForEach(TMMode.allCases, id: \.self) { mode in
                         Button(mode.label) {
-                            options.tmMode = mode
+                            options.graphing3D.tmMode = mode
                         }
                     }
                 }

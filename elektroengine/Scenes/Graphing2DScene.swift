@@ -18,6 +18,9 @@ class Graphing2DScene: BaseScene {
     let offsetX: Float = 3
     let offsetY: Float = 2
     var vectorField: VectorField
+    
+    //I want a point charge at 0,0
+    // the E field is E = 1/r^2 
 
     init() {
         camera = GraphCamera()
@@ -56,10 +59,10 @@ class Graphing2DScene: BaseScene {
     }
 
     func draw(renderEncoder: MTLRenderCommandEncoder, params: Params, uniforms: Uniforms, options: Options) {
-        background.draw(renderEncoder: renderEncoder, params: params, uniforms: uniforms)
-        if options.equationChoice == .sin {
+        //background.draw(renderEncoder: renderEncoder, params: params, uniforms: uniforms)
+        if options.graphing2D.equationChoice == .sin {
             graph.draw(renderEncoder: renderEncoder, params: params, uniforms: uniforms)
-        } else if options.equationChoice == .vector {
+        } else if options.graphing2D.equationChoice == .vector {
             vectorField.draw(renderEncoder: renderEncoder, params: params, uniforms: uniforms)
         }
     }

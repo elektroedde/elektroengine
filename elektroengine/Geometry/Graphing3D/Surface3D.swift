@@ -34,7 +34,7 @@ struct Surface3D: Transformable {
     var nnodes: [Int] = []
     init(device: MTLDevice) {
         pipelineState = PipelineStates.createSurfacePSO()
-        let mesh = getRectangle(5, 3)
+        let mesh = createRectangle(5, 3)
         
         // All vertices (GMSH node tags are 1-based)
         for val in mesh.nodes {
@@ -90,7 +90,7 @@ struct Surface3D: Transformable {
         params.surfaceMinZ = minZ
         params.surfaceMaxZ = maxZ
         
-        switch(options.tmMode) {
+        switch(options.graphing3D.tmMode) {
         case .TM11:
             params.xmode = 1
             params.zmode = 1

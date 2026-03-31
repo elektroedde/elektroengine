@@ -26,7 +26,7 @@ class RayMarchingScene: BaseScene {
         // Not used — this scene uses the compute pipeline
     }
     
-    func drawCompute(computeEncoder: MTLComputeCommandEncoder, texture: MTLTexture, view: MTKView, options: Options) {
+    func drawCompute(computeEncoder: MTLComputeCommandEncoder, texture: MTLTexture, options: Options) {
         computeEncoder.setComputePipelineState(computePipelineState)
         computeEncoder.setTexture(texture, index: 0)
         computeEncoder.setBytes(&timer, length: MemoryLayout<Float>.size, index: 0)

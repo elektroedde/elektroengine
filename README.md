@@ -39,6 +39,7 @@ Meshing is done by gmsh or manually programming vertices. The matrix assembly is
 
 TODO:
 - ✅ Complex number solutions [Added cgesv_ from LAPACK]
+- ✅ Colorbar with values
 
 ### FEM3D
 TODO:

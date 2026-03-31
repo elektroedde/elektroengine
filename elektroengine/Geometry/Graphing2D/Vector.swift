@@ -56,7 +56,7 @@ struct VectorField {
 
         renderEncoder.setVertexBuffer(vertexBuffer, offset: 0, index: VertexBuffer.index)
         renderEncoder.setVertexBuffer(instanceBuffer, offset: 0, index: InstanceBuffer.index)
-        renderEncoder.setTriangleFillMode(.lines)
+        renderEncoder.setTriangleFillMode(.fill)
 
         renderEncoder.setVertexBytes(&uniforms, length: MemoryLayout<Uniforms>.stride, index: UniformsBuffer.index)
         renderEncoder.setFragmentBytes(&params, length: MemoryLayout<Params>.stride, index: ParamsBuffer.index)

@@ -8,18 +8,19 @@ using namespace metal;
 #include "Colormaps/Colormaps.h"
 
 float3 drawGrid2(float2);
+float3 drawGridFEM2D(float2);
 float line(float coord, float scale, float thicknessMultiplier);
 
 fragment float4 fragment_background(constant Params &params [[buffer(ParamsBuffer)]],
                               VertexOut in [[stage_in]]) {
 
-    float3 color = drawGrid2(in.worldPos.xy);
+    float3 color = drawGridFEM2D(in.worldPos.xy);
     return float4(color, 1);
 }
 
 fragment float4 fragment_colorbar_outline(constant Params &params [[buffer(ParamsBuffer)]],
                               VertexOut in [[stage_in]]) {
-    return float4(1, 1, 1, 1);
+    return float4(0,0,0, 1);
 }
 
 fragment float4 fragment_colorbar(constant Params &params [[buffer(ParamsBuffer)]],
@@ -98,9 +99,12 @@ fragment float4 fragment_vector(constant Params &params [[buffer(ParamsBuffer)]]
     return float4(color, 1);
 }
 
-fragment float4 fragment_fem(constant Params &params [[buffer(ParamsBuffer)]],
+
+ fragment float4 fragment_fem(constant Params &params [[buffer(ParamsBuffer)]],
                               VertexOut in [[stage_in]]) {
-    
+    if(in.femValue < -1e30) {
+        return float4(0.5, 0.5, 0.5, 1.0);
+    }
     float t = clamp((in.femValue - params.minFem) / (params.maxFem - params.minFem), 0.0, 1.0);
 
     float3 color;

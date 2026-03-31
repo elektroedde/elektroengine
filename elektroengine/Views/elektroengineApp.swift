@@ -7,5 +7,6 @@ struct elektroengineApp: App {
         WindowGroup {
             ContentView()
         }
+        .windowResizability(.contentSize)
     }
 }

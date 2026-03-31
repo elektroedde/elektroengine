@@ -67,14 +67,15 @@ enum Colormap: Int32, CaseIterable {
 }
 
 enum FemChoice: CaseIterable {
-    case rectangle, chargedCylinder, waveguide, eigenmode
+    case square, chargedCylinder, waveguide, rectangularEigenmodes, circularEigenmodes
 
     var label: String {
         switch self {
-        case .rectangle: "Rectangle"
+        case .square: "Square"
         case .chargedCylinder: "Charged Cylinder"
         case .waveguide: "Waveguide"
-        case .eigenmode: "Eigenmode"
+        case .rectangularEigenmodes: "Rectangular Eigenmodes"
+        case .circularEigenmodes: "Circular Eigenmodes"
         }
     }
 }
@@ -90,8 +91,8 @@ enum SurfaceChoice: CaseIterable {
     }
 }
 
-enum EigenmodeNumber: CaseIterable {
-    case one, two, three, four, five, six, seven
+enum EigenmodeNumber: Int, CaseIterable {
+    case one = 0, two, three, four, five, six, seven
 
     var label: String {
         switch self {
@@ -104,6 +105,8 @@ enum EigenmodeNumber: CaseIterable {
         case .seven: "7"
         }
     }
+
+    var index: Int { rawValue }
 }
 
 enum TMMode: CaseIterable {
@@ -125,14 +128,34 @@ enum TMMode: CaseIterable {
 @Observable
 class Options {
     var applicationChoice = ApplicationWindow.FEM2D
-    var equationChoice = EquationChoice.vector
-    var femChoice = FemChoice.rectangle
+
+    // MARK: Shared rendering
     var colormap = Colormap.jet
     var drawWireframe = false
     var showContours = false
     var displayMinValue: Float = 0
     var displayMaxValue: Float = 1
-    var eigenmodeNumber = EigenmodeNumber.one
-    var tmMode = TMMode.TM11
-    var surface = SurfaceChoice.gravity
+
+    // MARK: Per-scene settings
+    var fem2D = FEM2DOptions()
+    var graphing2D = Graphing2DOptions()
+    var graphing3D = Graphing3DOptions()
+
+    struct FEM2DOptions {
+        var femChoice = FemChoice.rectangularEigenmodes
+        var solveFunction = false
+        var eigenmodeNumber = EigenmodeNumber.one
+        var displayFrequency: Float = 0
+        var quantity: String = ""
+        var showMesh = false
+    }
+
+    struct Graphing2DOptions {
+        var equationChoice = EquationChoice.vector
+    }
+
+    struct Graphing3DOptions {
+        var surface = SurfaceChoice.gravity
+        var tmMode = TMMode.TM11
+    }
 }

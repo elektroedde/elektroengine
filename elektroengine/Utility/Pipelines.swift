@@ -71,6 +71,16 @@ enum PipelineStates {
         return createPSO(descriptor: pipelineDescriptor)
     }
 
+    static func createWireframePSO() -> MTLRenderPipelineState {
+        let pipelineDescriptor = MTLRenderPipelineDescriptor()
+        pipelineDescriptor.vertexFunction = ShaderLibrary.vertex(.fem)
+        pipelineDescriptor.fragmentFunction = ShaderLibrary.fragment(.colorbarOutline)
+        pipelineDescriptor.colorAttachments[0].pixelFormat = .bgra8Unorm
+        pipelineDescriptor.depthAttachmentPixelFormat = .depth32Float
+        pipelineDescriptor.vertexDescriptor = MTLVertexDescriptor.femLayout
+        return createPSO(descriptor: pipelineDescriptor)
+    }
+
     static func createSurfacePSO() -> MTLRenderPipelineState {
         let pipelineDescriptor = MTLRenderPipelineDescriptor()
         pipelineDescriptor.vertexFunction = ShaderLibrary.vertex(.surface)

@@ -59,6 +59,56 @@ struct ChargedCylinder: Transformable {
         let endTime = CFAbsoluteTimeGetCurrent()
         print("Total time for the solver: \(String(format: "%.0f", (endTime - startTime)*1000))ms\n")
 
+        // Gradient stuff
+        // 1. Build node-to-element adjacency
+        let nodeCount = femObject.N
+        let elementCount = femObject.M
+        var nodeToElements: [[Int]] = Array(repeating: [], count: nodeCount)
+        for elem in 0..<elementCount {
+            let n0 = femObject.nodes[3 * elem]
+            let n1 = femObject.nodes[3 * elem + 1]
+            let n2 = femObject.nodes[3 * elem + 2]
+            nodeToElements[n0].append(elem)
+            nodeToElements[n1].append(elem)
+            nodeToElements[n2].append(elem)
+        }
+        
+        // 2. Compute per-element gradient
+        var elemGradX = [Float](repeating: 0, count: elementCount)
+        var elemGradY = [Float](repeating: 0, count: elementCount)
+        for elem in 0..<elementCount {
+            let n0 = femObject.nodes[3 * elem]
+            let n1 = femObject.nodes[3 * elem + 1]
+            let n2 = femObject.nodes[3 * elem + 2]
+            let x1 = femObject.vertices[n0].x, y1 = femObject.vertices[n0].y
+            let x2 = femObject.vertices[n1].x, y2 = femObject.vertices[n1].y
+            let x3 = femObject.vertices[n2].x, y3 = femObject.vertices[n2].y
+            let u1 = femValues[n0], u2 = femValues[n1], u3 = femValues[n2]
+            let twoA = (x2 - x1) * (y3 - y1) - (x3 - x1) * (y2 - y1)
+            elemGradX[elem] = (u1 * (y2 - y3) + u2 * (y3 - y1) + u3 * (y1 - y2)) / twoA
+            elemGradY[elem] = (u1 * (x3 - x2) + u2 * (x1 - x3) + u3 * (x2 - x1)) / twoA
+        }
+        
+        // 3. Average gradients to nodes and compute magnitude
+        var gradientMagnitude = [Float](repeating: 0, count: nodeCount)
+        for node in 0..<nodeCount {
+            let adjElems = nodeToElements[node]
+            var gx: Float = 0
+            var gy: Float = 0
+            for elem in adjElems {
+                gx += elemGradX[elem]
+                gy += elemGradY[elem]
+            }
+            if !adjElems.isEmpty {
+                gx /= Float(adjElems.count)
+                gy /= Float(adjElems.count)
+            }
+            gradientMagnitude[node] = sqrt(gx * gx + gy * gy)
+        }
+        
+        // Use gradient magnitude as the displayed FEM values
+        femValues = gradientMagnitude
+
         guard let femBuffer = device.makeBuffer(bytes: &femValues, length: MemoryLayout<Float>.stride * femValues.count, options: []) else {
             fatalError("Could not create FEM buffer")
         }
@@ -66,9 +116,6 @@ struct ChargedCylinder: Transformable {
         self.vertexBuffer = vertexBuffer
         self.indexBuffer = indexBuffer
         self.femBuffer = femBuffer
-        
-        print("The max value of the solution is: ", femValues.max()!)
-        print("The min value of the solution is: ", femValues.min()!)
     }
 
     func draw(renderEncoder: MTLRenderCommandEncoder, params fragment: Params, uniforms vertex: Uniforms, options: Options) {

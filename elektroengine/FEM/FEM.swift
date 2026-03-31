@@ -5,6 +5,11 @@ struct FEM_Model {
 
     var nodes: [Int] = []
     var vertices: [Vertex] = []
+    
+    /// All node coordinates for 3D FEM (includes interior nodes)
+    var nodeCoords: [SIMD3<Float>] = []
+    var N3D: Int { nodeCoords.count }
+    var M3D: Int { nodes.count / 4 }
 
     var dirichletNodes: [Int] = []
     var dirichletValues: [Int] = []

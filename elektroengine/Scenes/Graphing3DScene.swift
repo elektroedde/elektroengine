@@ -32,9 +32,9 @@ class Graphing3DScene: BaseScene {
 
     func draw(renderEncoder: MTLRenderCommandEncoder, params: Params, uniforms: Uniforms, options: Options) {
         
-        if(options.surface == .waveguide) {
+        if(options.graphing3D.surface == .waveguide) {
             waveguide.draw(renderEncoder: renderEncoder, params: params, uniforms: uniforms, options: options, timer: timer)
-        } else if(options.surface == .gravity) {
+        } else if(options.graphing3D.surface == .gravity) {
             gravity.draw(renderEncoder: renderEncoder, params: params, uniforms: uniforms, options: options, timer: timer)
         }
         

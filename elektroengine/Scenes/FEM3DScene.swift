@@ -7,6 +7,11 @@ class FEM3DScene: BaseScene {
     lazy var cube: Cube = {
         return Cube(device: Renderer.device)
     }()
+    
+    lazy var colorbar: Colorbar = {
+        Colorbar(device: Renderer.device)
+    }()
+    
 
     var camera: any Camera
 
@@ -18,6 +23,7 @@ class FEM3DScene: BaseScene {
 
     init() {
         camera = ArcballCamera()
+        colorbar.transform.position.z -= 0.001
         
 
     }
@@ -31,7 +37,9 @@ class FEM3DScene: BaseScene {
     }
 
     func draw(renderEncoder: MTLRenderCommandEncoder, params: Params, uniforms: Uniforms, options: Options) {
+        colorbar.draw(renderEncoder: renderEncoder, params: params, uniforms: uniforms, options: options)
+        cube.draw(renderEncoder: renderEncoder, params: params, uniforms: uniforms, options: options)
+        
 
-        cube.draw(renderEncoder: renderEncoder, params: params, uniforms: uniforms)
     }
 }
