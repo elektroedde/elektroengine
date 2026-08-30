@@ -7,13 +7,11 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		E4A8020F2F5D9A95003BC822 /* libgmsh.4.15.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 52F6FF082F53A02600FD959E /* libgmsh.4.15.1.dylib */; };
 		E4A802872F5DB138003BC822 /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = E4A802862F5DB138003BC822 /* README.md */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		522860C92F4DE45E00C94D21 /* elektroengine.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = elektroengine.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		52F6FF082F53A02600FD959E /* libgmsh.4.15.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libgmsh.4.15.1.dylib; path = ../../../../../opt/homebrew/Cellar/gmsh/4.15.1/lib/libgmsh.4.15.1.dylib; sourceTree = "<group>"; };
 		E4A802862F5DB138003BC822 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -35,7 +33,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				E4A8020F2F5D9A95003BC822 /* libgmsh.4.15.1.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -47,7 +44,6 @@
 			children = (
 				5244A3D22F58E2EE000A91F4 /* docs */,
 				522860CB2F4DE45E00C94D21 /* elektroengine */,
-				523777612F53991B00C205ED /* Frameworks */,
 				522860CA2F4DE45E00C94D21 /* Products */,
 				E4A802862F5DB138003BC822 /* README.md */,
 			);
@@ -59,14 +55,6 @@
 				522860C92F4DE45E00C94D21 /* elektroengine.app */,
 			);
 			name = Products;
-			sourceTree = "<group>";
-		};
-		523777612F53991B00C205ED /* Frameworks */ = {
-			isa = PBXGroup;
-			children = (
-				52F6FF082F53A02600FD959E /* libgmsh.4.15.1.dylib */,
-			);
-			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -298,10 +286,6 @@
 					ACCELERATE_NEW_LAPACK,
 				);
 				GENERATE_INFOPLIST_FILE = YES;
-				HEADER_SEARCH_PATHS = (
-					/opt/homebrew/Cellar/gmsh/4.15.1/include,
-					"/C++",
-				);
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
@@ -313,17 +297,8 @@
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				IPHONEOS_DEPLOYMENT_TARGET = 26.2;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"@executable_path/Frameworks",
-					/opt/homebrew/lib,
-				);
+				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					/opt/homebrew/lib,
-					"$(PROJECT_DIR)",
-					/opt/homebrew/Cellar/gmsh/4.15.1/lib,
-				);
 				MACOSX_DEPLOYMENT_TARGET = 26.2;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = elektroedde.Graphing2D;
@@ -372,10 +347,6 @@
 				ENABLE_RESOURCE_ACCESS_PHOTO_LIBRARY = NO;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
-				HEADER_SEARCH_PATHS = (
-					/opt/homebrew/Cellar/gmsh/4.15.1/include,
-					"/C++",
-				);
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
@@ -387,17 +358,8 @@
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				IPHONEOS_DEPLOYMENT_TARGET = 26.2;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"@executable_path/Frameworks",
-					/opt/homebrew/lib,
-				);
+				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					/opt/homebrew/lib,
-					"$(PROJECT_DIR)",
-					/opt/homebrew/Cellar/gmsh/4.15.1/lib,
-				);
 				MACOSX_DEPLOYMENT_TARGET = 26.2;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = elektroedde.Graphing2D;

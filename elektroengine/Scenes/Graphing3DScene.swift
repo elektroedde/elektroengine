@@ -3,9 +3,9 @@ import MetalKit
 class Graphing3DScene: BaseScene {
     var camera: any Camera
 
-    lazy var waveguide: Surface3D = {
+    /*lazy var waveguide: Surface3D = {
         Surface3D(device: Renderer.device)
-    }()
+    }()*/
     
     lazy var gravity: GravitySurface = {
         GravitySurface(device: Renderer.device)
@@ -17,7 +17,7 @@ class Graphing3DScene: BaseScene {
     init() {
         camera = FPCamera()
         camera.transform.rotation.x = Float(-30).degreesToRadians
-        pointer = waveguide.vertexBuffer.contents().bindMemory(to: Vertex.self, capacity: waveguide.vertices.count)
+        /*pointer = waveguide.vertexBuffer.contents().bindMemory(to: Vertex.self, capacity: waveguide.vertices.count)*/
 
     }
 
@@ -33,7 +33,7 @@ class Graphing3DScene: BaseScene {
     func draw(renderEncoder: MTLRenderCommandEncoder, params: Params, uniforms: Uniforms, options: Options) {
         
         if(options.surface == .waveguide) {
-            waveguide.draw(renderEncoder: renderEncoder, params: params, uniforms: uniforms, options: options, timer: timer)
+            /*waveguide.draw(renderEncoder: renderEncoder, params: params, uniforms: uniforms, options: options, timer: timer)*/
         } else if(options.surface == .gravity) {
             gravity.draw(renderEncoder: renderEncoder, params: params, uniforms: uniforms, options: options, timer: timer)
         }

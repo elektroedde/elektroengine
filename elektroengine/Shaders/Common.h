@@ -2,10 +2,6 @@
 #define Common_h
 #import <simd/simd.h>
 
-#ifndef __METAL_VERSION__
-#import "meshing.hpp"
-#endif
-
 struct Params {
     unsigned int width;
     unsigned int height;

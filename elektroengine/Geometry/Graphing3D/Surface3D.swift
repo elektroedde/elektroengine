@@ -1,7 +1,7 @@
 import MetalKit
 
 
-
+/*
 struct Surface3D: Transformable {
 
     //var hitbox: BoundingSphere = BoundingSphere(center: [0,0,0], radius: 1)
@@ -36,7 +36,7 @@ struct Surface3D: Transformable {
         pipelineState = PipelineStates.createSurfacePSO()
         let mesh = getRectangle(5, 3)
         
-        // All vertices (GMSH node tags are 1-based)
+        // All vertices (mesh node tags are 1-based)
         for val in mesh.nodes {
             nnodes.append(Int(val)-1)
         }
@@ -138,3 +138,4 @@ struct Surface3D: Transformable {
 }
 
 
+*/
